@@ -7,7 +7,9 @@ import motor
 
 class Car:
     # TODO: put a bunch of stuff in here
-
+    def __init__(self):
+        self.SOC = 0
+        self.speed = 0
     # TODO: maybe change the parameters to make this make more sense
     def drive(self, speed, time):
         # simulate mechanical losses
@@ -17,3 +19,4 @@ class Car:
         # simulate battery losses/gains
 
         # provide CAN outputs
+        print("something")
