@@ -1,4 +1,4 @@
-
+import math
 
 class Weather:
     
@@ -13,10 +13,10 @@ class Weather:
     def get_angle_to_sun(self):
         #get weather data from API
         #return weather data
-        pass
+        return math.pi/2
         
     #returns the intensity of the sun in W/m^2
     def get_intensity(self):
         #get weather data from API
         #return weather data
-        pass
+        return 1000

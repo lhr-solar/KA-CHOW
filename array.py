@@ -1,4 +1,3 @@
-import requests
 import math
 from weather import Weather
 
@@ -10,14 +9,14 @@ class Array:
         self.weather = weather
         
     def calculateIrradiance(self):
-        angle_to_sun = self.weather.get_angle_of_sun()
-        intensity_from_sun = self.weather.get_intensity()
+        angle_to_sun = Weather.get_angle_to_sun(self.weather)
+        intensity_from_sun = Weather.get_intensity(self.weather)
         return math.cos(angle_to_sun) * intensity_from_sun
         
 
     def get_power(self):
-        solarcell_c60 = SolarCell(solarcell_c60, 153.328, 0.225, 25, -0.00342) #unsure of the temperature_coefficients
-        solarcell_e60 = SolarCell(solarcell_e60, 153.328, 0.237, 25, -0.00363)
+        solarcell_c60 = SolarCell(153.328, 0.225, 25, -0.00342) #unsure of the temperature_coefficients
+        solarcell_e60 = SolarCell(153.328, 0.237, 25, -0.00363)
         return solarcell_c60.get_power_gen(self.calculateIrradiance()) * self.num_c60 + solarcell_e60.get_power_gen(self.calculateIrradiance()) * self.num_e60
     
     
@@ -51,7 +50,7 @@ class SolarCell:
         return self.area * self.efficiency * light_intensity * (1 - temperature_loss)
     
     
-if __name__ == "___main__":
+if __name__ == "__main__":
     weather = Weather(0,0,0)
     array = Array(weather)
     print(array.get_power())
