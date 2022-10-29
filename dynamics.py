@@ -7,6 +7,8 @@ The system will take in paramaters such as the car's mass, the velocity it's goi
 & the friction coefficient of the car as preliminary constants. 
 It will then calculate the total amount of energy lost as a result of the dynamics systems
 """
+import math
+
 
 class Dynamics:
 
@@ -14,7 +16,7 @@ class Dynamics:
     GRAVITY = 9.81
 
 
-    def __init__(self, mass, tire_frictk, velocity):
+    def __init__(self, mass, tire_frictk, velocity, theta):
         #the weight of the car
         self.weight = mass
 
@@ -24,19 +26,22 @@ class Dynamics:
         # the velocity of the car
         self.velocity = velocity
 
+        #the angle of incidence for the road. MEANT TO BE DEGREES
+        self.theta = theta
+
 
     #this method will update the 
     def update_speed(self, velocity):
         self.velocity = velocity
 
-    #this method returns the normal force of the car (weight * gravity)
+    #this method returns the normal force of the car (weight * gravity * math.cos(degrees))
     def normal_force(self):
-        return self.mass * self.GRAVITY
+        return self.mass * self.GRAVITY * math.cos(math.radians(self.theta))
 
     #this method calculates the total amount of energy lost to friction
-    def frictionLoss(self):
-        return  self.normal_force(self) * self.tire_frictk * self.velocity
+    def frictionLoss(self, time):
+        return  self.normal_force(self) * self.tire_frictk * self.velocity * time
 
     #this method calculates & returns the total amount of enregy lost as a result of the dynamics system
-    def dynamicsLoss(self):
-        return self.frictionLoss(self)
+    def dynamicsLoss(self, time):
+        return self.frictionLoss(self, time)
