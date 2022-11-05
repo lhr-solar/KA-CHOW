@@ -1,4 +1,5 @@
 import math
+import pysolar
 
 class Weather:
     
@@ -10,13 +11,9 @@ class Weather:
     def set_time(self, time):
         self.time = time
         
-    def get_angle_to_sun(self):
-        #get weather data from API
-        #return weather data
-        return math.pi/2
-        
     #returns the intensity of the sun in W/m^2
     def get_intensity(self):
         #get weather data from API
         #return weather data
-        return 1000
+        altitude_deg = pysolar.solar.get_altitude(self.latitude,self.longitude,self.time)
+        return pysolar.radiation.get_radiation_direct(self.time,altitude_deg)

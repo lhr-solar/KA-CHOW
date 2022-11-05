@@ -5,6 +5,9 @@ lat, lon = 30.267153, -97.743057  # Austin, TX
 timezone = datetime.timezone(datetime.timedelta(hours=-6))  # 0800 UTC
 start = datetime.datetime(2023,11,5,tzinfo=timezone)  # 1 Jan 2018
 
+date = datetime.datetime.now(datetime.timezone.utc)
+print(pysolar.solar.get_altitude(lat, lon, date))
+
 # Calculate radiation every hour for 90 days
 nhr = 24*1
 dates, altitudes_deg, radiations = list(), list(), list()
