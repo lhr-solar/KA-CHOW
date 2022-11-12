@@ -1,7 +1,9 @@
 """
 model of the low-voltage electrical system
 """
-
+#return a simple value for electronics voltage, ask power system later for the power value that is not supposed to fluctuate a lot
+#the plan for now is to convert it somehow to current then use that in the car class to calculate the current passed into the battery subclasses
+#will need power system to provide the resistance value first
 class Electronics:
     
     def __init__(self, power):
