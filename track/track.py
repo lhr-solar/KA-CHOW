@@ -7,30 +7,45 @@ class Track:
     track = 0
     curr = "S0"
     name = {}
-    pit = 0
+    pit = "no";
+    fork1 = "left"; #left, middle, right
+    fork2 = "left"; #left, right
+    fork3 = "left"; #left, right
 
     def __init__(self, trackName):
-        with open("app/track/track.geojson", "r") as f:
+        with open("track/" + trackName + ".geojson", "r") as f:
             self.track = json.load(f)
         for i in range(len(self.track["features"])):
             self.name.update({self.track["features"][i]["properties"]["name"]: i})
 
+    # example call setPit("yes") forces car to take the next pit
     def setPit(self, pit):
-        self.pit = pit
+        self.pit = "yes" if pit == "yes" else "no"
+    
+    # example call setFork("right", "right", "right") takes the longest route
+    def setForks(self, f1, f2, f3):
+        fork1 = f1
+        fork2 = f2
+        fork3 = f3
 
     def getCurr(self):
         return self.curr
 
     def getNext(self, p1):
-        return self._getPoint(p1)["properties"]["next"][self.pit]
+        if(self._getPoint(p1)["properties"]["name"] == "S5"):
+            return self._getPoint(p1)["properties"][self.fork1]
+        if(self._getPoint(p1)["properties"]["name"] == "S37"):
+            return self._getPoint(p1)["properties"][self.fork2]
+        if(self._getPoint(p1)["properties"]["name"] == "S11"):
+            return self._getPoint(p1)["properties"][self.fork3]
+        return self._getPoint(p1)["properties"]["next"]
 
     def goNext(self):
         self.curr = self.getNext(self.curr)
 
-    def getPercentSlope(self, p1, p2):
+    def getAngleSlope(self, p1, p2):
         return (
-            100 * (self._getElevation(p2) - self._getElevation(p1))
-            / (self.getDistance(p1, p2))
+            math.atan((self._getElevation(p2) - self._getElevation(p1)) / self.getDistance(p1, p2)) 
         )
 
     def getDistance(self, p1, p2):
@@ -61,6 +76,10 @@ class Track:
         return math.sqrt(x * x + y * y)
 
 
-t = Track("alpha")
+t = Track("Heartland")
 print(t.getDistance("S1", "S3"))
-print(t.getPercentSlope("S1", "S2"))
+print(t.getAngleSlope("S1", "S2"))
+
+while t.getNext(t.getCurr()) != "S0" :
+    print(t.getAngleSlope(t.getCurr(), t.getNext(t.getCurr())))
+    t.goNext()

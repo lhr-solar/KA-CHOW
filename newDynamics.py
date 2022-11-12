@@ -18,7 +18,7 @@ class newDynamics:
 
     # parameters for the constructor: mass, vehicle tire friction coefficient, aerodynamic drag coefficient
     # current velocity, and frontal area
-    def __init__(self, mass, tire_frictk, drag_coeff, velocity, frontal_area, acceleration_rate):
+    def __init__(self, mass, tire_frictk, drag_coeff, velocity, frontal_area):
         self.mass = mass
         self.tire_frictk = tire_frictk
         self.drag_coeff = drag_coeff
@@ -26,7 +26,6 @@ class newDynamics:
         self.old_velocity = velocity
         self.frontal_area = frontal_area
         self.time = 0
-        self.acceleration_rate = 0.5
 
     # first variable of the equation: the rolling resistance force
     def rolling_resistance(self):
@@ -37,9 +36,9 @@ class newDynamics:
         return 0.5 * self.drag_coeff * self.AIR_MASS_DENSITY * self.velocity * self.velocity * self.frontal_area
 
     # third variable of the equation: the climbing resistance force
-    # slope will come as a percentage from track data
-    def climbing_resistance(self, slope):
-        return self.mass * self.GRAVITY * math.sin(math.radians(slope))
+    # theta will come as an angle from track data
+    def climbing_resistance(self, theta):
+        return self.mass * self.GRAVITY * math.sin(theta)
 
     # fourth variable of the equation: the linear acceleration force
     # acceleration is only taken into account if the vehicle's velocity has changed
