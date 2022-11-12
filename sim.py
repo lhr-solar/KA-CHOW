@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # create a new instance of the newDynamics class
 # mass = 100 kg, tire friction coefficient = 0.01, drag coefficient = 0.5, velocity = 0 m/s, frontal area = 1 m^2
-newDynamics = newDynamics(100, 0.01, 0.5, 0, 1)
+newDynamics = newDynamics(100, 0.01, 0.01, 0.5, 0, 1)
 
 
 def create_square_track():

@@ -18,9 +18,10 @@ class newDynamics:
 
     # parameters for the constructor: mass, vehicle tire friction coefficient, aerodynamic drag coefficient
     # current velocity, and frontal area
-    def __init__(self, mass, tire_frictk, drag_coeff, velocity, frontal_area):
+    def __init__(self, mass, tire_frictk, tire_fricts, drag_coeff, velocity, frontal_area):
         self.mass = mass
         self.tire_frictk = tire_frictk
+        self.tire_fricts = tire_fricts
         self.drag_coeff = drag_coeff
         self.velocity = velocity
         self.old_velocity = velocity
@@ -52,6 +53,10 @@ class newDynamics:
                 return 0
             else:
                 return self.mass * (self.velocity - self.old_velocity) / self.time
+
+    #this method calculates the max velocity that we can go at on a turn
+    def max_turn_velocity(self, radius):
+        return math.sqrt(self.GRAVITY * self.mass * self.tire_fricts)
 
     # this method calculates the total required vehicle propelling force
     def total_propelling_force(self, slope):
