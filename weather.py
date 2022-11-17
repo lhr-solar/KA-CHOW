@@ -24,9 +24,13 @@ class Weather:
     def get_intensity(self):
         #get weather data from API
         #return weather data
-        altitude_deg = pysolar.solar.get_altitude(self.latitude,self.longitude,self.time)
-        return pysolar.radiation.get_radiation_direct(self.time,altitude_deg)
+        
+        # altitude_deg = pysolar.solar.get_altitude(self.latitude,self.longitude,self.time)
+        # return pysolar.radiation.get_radiation_direct(self.time,altitude_deg)
+        
+        return self.pull_weather_data()
     
+    #the current weather data is saved in a csv file, to have ht efile reupdate, the file has to be deleted
     def pull_weather_data(self):
         #get weather data from API from visual crossing and stores it into a csv file
         #return weather data
