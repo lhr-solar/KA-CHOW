@@ -55,8 +55,8 @@ class newDynamics:
                 return self.mass * (self.velocity - self.old_velocity) / self.time
 
     #this method calculates the max velocity that we can go at on a turn
-    def max_turn_velocity(self, radius):
-        return math.sqrt(self.GRAVITY * self.mass * self.tire_fricts)
+    def max_velocity(self, radius):
+        return math.sqrt(self.GRAVITY * self.mass * self.tire_fricts * radius)
 
     # this method calculates the total required vehicle propelling force
     def total_propelling_force(self, slope):
