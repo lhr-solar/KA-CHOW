@@ -21,33 +21,43 @@ import battery_module
 # and then passed as a parameter to the battery module to calculate the power of the battery
 
 class Car:
+    batteryCharge = 100
+    voltageOfASingleCell = 80 #to be removed later
+
+    def __init__(self, speed, time):
+        aero = aeroshell(speed, 45, 1.225, 45, (speed*time))
+        dynam = dynamics(1000, 0.4, 0.7 )
+        batteryPack = battery_pack(self.batteryCharge, 0)
+
+
     
     def drive(self, speed, time):
-        batteryCharge = 100
-        voltageOfASingleCell = 80 #to be removed later
+       
+        array = array(self.weather)
+        ArrayVoltage = self.voltageOfASingleCell*242
 
         def __init__(self, velocity, referenceArea, mediumDensity, dragCoefficient, distance):
 
         # simulate mechanical losses
 
             #simulating losses from aeroshell
-            aero = aeroshell(speed, 45, 1.225, 45, (speed*time))
-            totalMechLoss = aero.energyLostv1(aero.dr)
+            
+            totalMechLoss = self.aero.energyLostv1(self.aero.dr)
 
             #simulating energy loss from dynamics (assuming it would also return energyloss in joules)
             #code below will need to be altered once dynamics subclass is finished
-            dynam = dynamics()#construct an object
-            totalMechLoss += dynam.energyLost()#get energyLoss
+            
+            totalMechLoss += self.dynam.energyLost()#get energyLoss
+
 
         # simulate electronics, array, and motor losses to figure out current provided/requested
             
             #simulating losses from the array 
             #some function to return power
             #convert power to current (power/voltage = current)
-            weather = weather(0,0,0)
+            
             #for now array is assumed to be a constant value, need the array subsystem to give algorithm/formula to calculate voltage
-            array = array(weather)
-            ArrayVoltage = voltageOfASingleCell*242
+            array = array(self.weather)
             currentFromArray = array.get_power()/ArrayVoltage
             
             #do the same for electronics and motor            
@@ -55,7 +65,7 @@ class Car:
 
 
         # simulate battery losses/gains 
-            batteryPack = battery_pack(batteryCharge, 0)
+            
             batteryPack.updateModuleInternalResistance()
             batteryCharge -= batteryPack.LostCapacity(0, 0)
         # provide CAN outputs (it will depend on what race strategies will end up looking like and what inputs will be needed)

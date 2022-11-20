@@ -45,9 +45,6 @@ class BatteryPack:
         lostCapacity/=totalCapacity
         return lostCapacity
 
-
-
-
     """
     run the battery at a specific current for a specific time
     TODO: should we be specifying power instead of current?

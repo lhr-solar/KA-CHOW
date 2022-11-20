@@ -24,7 +24,6 @@ from battery_pack import internalResistanceOfPack
 #divide it by the overall capacity to calculate it in percents 
 #return that and in the main class add lostCapacity to static battery capacity variable
 
-
 class BatteryModule:
 
     """
@@ -32,7 +31,6 @@ class BatteryModule:
     """
     #def __init__(self, voltage, temperature, capacity, resistance):
         #self.temperature = temperature #most likely will not be needed
-
 
     def __init_(self, capacity, current):
         #voltage given; should be a constant value
@@ -55,7 +53,6 @@ class BatteryModule:
     def voltageOfModule(self):#same as for the cell 
         return self.voltage
     
-
     def powerGeneratedByModule(self):#pass current calculated from array, electronics, and motor
         return self.voltage * self.current
 
@@ -66,5 +63,5 @@ class BatteryModule:
     run the battery module with a certain current for a certain time 
     """
     def run(current, time):
-        # TODO
+        
         pass
