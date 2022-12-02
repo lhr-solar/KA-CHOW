@@ -1,8 +1,5 @@
-import geojson
+import json
 import math
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import interpolate
 
 class Track:
 
@@ -17,7 +14,7 @@ class Track:
     # 
     def __init__(self, trackName):
         with open("app/track/" + trackName + ".geojson", "r") as f:
-            self.track = geojson.load(f)
+            self.track = json.load(f)
         for i in range(len(self.track["features"])):
             self.name.update({self.track["features"][i]["properties"]["name"]: i})
     
@@ -83,47 +80,6 @@ class Track:
             p1 = p2
             p2 = self.getNext(p2)
         return distance + self._getDirectDistance(p1, p2)
-
-    def generateMinimap(self):
-        line = geojson.LineString([])
-        start = self.getCurr()
-        while self.getNext(self.getCurr()) != start:
-            lat, lon = self._getCoords()
-            line["coordinates"].append([lon, lat])
-            self.goNext()
-        for i in range(2):
-            lat, lon = self._getCoords()
-            line["coordinates"].append([lon, lat])
-            self.goNext()
-        f = geojson.Feature(geometry=line)
-        fc = geojson.FeatureCollection([f])
-        with open("app/track/minimap.geojson", "w") as f:
-            geojson.dump(fc, f, indent=4)
-    
-    # WIP curves need to be more tangent-like
-    def interpolateMinimap(self):
-        x = []
-        y = []
-        start = self.getCurr()
-        while self.getNext(self.getCurr()) != start:
-            lat, lon = self._getCoords()
-            x.append(lon)
-            y.append(lat)
-            self.goNext()
-        lat, lon = self._getCoords()
-        x.append(lon)
-        y.append(lat)
-        self.goNext()
-
-        tck, u = interpolate.splprep([x, y], s=0)
-        unew = np.arange(0, 1, .01)
-        out = interpolate.splev(unew, tck)
-        plt.figure()
-        plt.plot(x, y, 'x', out[0], out[1], x, y, 'b')
-        plt.legend(['Linear', 'Cubic Spline', 'True'])
-        plt.axis([-95.68512414004034, -95.6651136503342, 38.917864784928895, 38.93202447381995])
-        plt.title('Spline of parametrically-defined curve')
-        plt.show()
 
     # private functions you shouldn't have to use
     def _getPoint(self, p1=None):
