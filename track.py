@@ -1,137 +1,177 @@
-# model of the track
-import random
+import geojson
 import math
+import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.path import Path
-import matplotlib.patches as patches
-
-#@param length/radius in meters
-class Segment:
-    length = 0
-    radius = 0
-    x = 0
-    y = 0
-    next = 0
-    
-    def __init__(self, name, x, y, length, radius):
-        self.name = name
-        self.x = x
-        self.y = y
-        self.radius = radius
-        self.length = length
-        
-    def __str__(self):
-        return f"<Name: {self.name}, x: {self.x}, y: {self.y}, Length: {self.length}, Radius: {self.radius}>"
-    
+from scipy import interpolate
 
 class Track:
-    start = 0
-    curr = 0
-    numSeg = 0
-    d = {}        
-    
-    def __init__(self, *args):
-        if isinstance(args[0], int):
-            c = 'A'
-            oldX = 10
-            oldY = 10
-            self.d[c] = Segment(c, oldX, oldY, 0, 0)
-            self.start = self.d[c]
-            self.curr = self.start
-            self.numSeg = args[0]
-            
-            for i in range(args[0]-1):
-                c = chr(ord(c)+1)
-                if oldX <= 50 and oldY <= 50:
-                    self.d[c] = Segment(c, random.randint(oldX,100), random.randint(oldY,50), 0, 0)
-                elif oldX <= 50 and oldY >= 50:
-                    self.d[c] = Segment(c, random.randint(oldX,50), random.randint(0,oldY), 0, 0)
-                elif oldX >= 50 and oldY <= 50:
-                    self.d[c] = Segment(c, random.randint(50,oldX), random.randint(oldY,100), 0, 0)
-                elif oldX >= 50 and oldY >= 50:
-                    self.d[c] = Segment(c, random.randint(0,oldX), random.randint(50,oldY), 0, 0)
-                oldX = self.d[c].x 
-                oldY = self.d[c].y
-                self.curr.next = self.d[c]
-                self.curr = self.curr.next
-                
-            self.curr.next = self.start
-            self.curr = self.start 
-        elif isinstance(args[0], str):
-            self.d["S0"] = Segment("S0", 10, 10, 1, 0)
-            self.d["S1"] = Segment("S1", 30, 10, 1, 0)
-            self.d["S2"] = Segment("S2", 80, 20, 1, 0)
-            self.d["S3"] = Segment("S3", 90, 70, 1, 0)
-            self.d["S4"] = Segment("S4", 50, 80, 1, 0)
-            self.d["S5"] = Segment("S5", 30, 70, 1, 0)
-            self.d["S6"] = Segment("S6", 20, 40, 1, 0)
-            self.d["S7"] = Segment("S7", 10, 20, 1, 0)
-            self.d["S0"].next = self.d["S1"]
-            self.d["S1"].next = self.d["S2"]
-            self.d["S2"].next = self.d["S3"]
-            self.d["S3"].next = self.d["S4"]
-            self.d["S4"].next = self.d["S5"]
-            self.d["S5"].next = self.d["S6"]
-            self.d["S6"].next = self.d["S7"]
-            self.d["S7"].next = self.d["S0"]
-            self.start = self.d["S0"]
-            self.curr = self.start
-            self.numSeg = 8
-        for i in range(self.numSeg):
-            self.curr.length = round(math.sqrt(self.curr.x*self.curr.x + self.curr.next.y*self.curr.next.y), 3)
-            self.curr = self.curr.next
-            
-    
-    def __str__(self):
-        out = ""
-        for i in range(self.numSeg):
-            out += str(self.curr) + "\n"
-            self.curr = self.curr.next
-        return out      
-    
-    def getSeg(self) -> Segment:
-        seg = self.curr
-        self.curr = self.curr.next
-        return seg
-    
-    def getLength(self, a , b) -> int:
-        segA = self.d[a]
-        segB = self.d[b]
-        length = segA.length
-        segA = segA.next
-        while segA != segB:
-            length += segA.length
-            segA = segA.next
-        return round(length,3)
-    
-# testing    
-t = Track("manual")
 
-print(t)
-print("S0 -> S0: " + str(t.getLength("S0", "S0")))
-print("S0 -> S2: " + str(t.getLength("S0", "S2")))
-print("S6 -> S7: " + str(t.getLength("S6", "S7")))
-# print("A -> A: " + str(t.getLength("A", "A")))
-# print("A -> C: " + str(t.getLength("A", "C")))
-# print("C -> D: " + str(t.getLength("C", "D")))
+    track = 0
+    curr = "S0"
+    name = {}
+    pit = "nopit";  #nopit, pit
+    fork1 = "left"; #left, middle, right
+    fork2 = "left"; #left, right
+    fork3 = "left"; #left, right
 
-verts = []
-for i in range(t.numSeg):
-    seg = t.getSeg()
-    verts.append((seg.x,seg.y))
-verts.append((0,0))
+    # 
+    def __init__(self, trackName):
+        with open("app/track/" + trackName + ".geojson", "r") as f:
+            self.track = geojson.load(f)
+        for i in range(len(self.track["features"])):
+            self.name.update({self.track["features"][i]["properties"]["name"]: i})
+    
+    # example call setFork("right", "right", "right") takes the longest route
+    def setForks(self, f1, f2, f3):
+        self.fork1 = f1
+        self.fork2 = f2
+        self.fork3 = f3
 
-codes = []
-codes.append(Path.MOVETO)
-for i in range(t.numSeg-1):    
-    codes.append(Path.LINETO)
-codes.append(Path.CLOSEPOLY)
+    # example call pitNext() forces car to take the ONLY the next pit
+    def pitNext(self):
+        self.pit = "pit"
 
-path = Path(verts, codes)
+    # returns current name like "S0"
+    def getCurr(self):
+        return self.curr
 
-fig, ax = plt.subplots()
-patch = patches.PathPatch(path, facecolor='green', lw=2)
-ax.add_patch(patch)
-ax.set_xlim(0, 100)
-ax.set_ylim(0, 100)
-plt.show()
+    # returns next name like "S1"
+    def getNext(self, p1=None):
+        if(p1 == None):
+            p1 = self.curr
+        match = lambda s: self._getPoint(p1)["properties"]["name"] == s
+        if(match("S5")):
+            return self._getPoint(p1)["properties"][self.fork1]
+        if(match("S8")):
+            return self._getPoint(p1)["properties"][self.fork2]
+        if(match("S10")):
+            return self._getPoint(p1)["properties"][self.fork3]
+        if(match("S21")):
+            if(self.pit == "pit"):
+                self.pit = "nopit"
+                return self._getPoint(p1)["properties"]["pit"]
+            return self._getPoint(p1)["properties"]["nopit"]
+        return self._getPoint(p1)["properties"]["next"]
+
+    # iterates curr to next name
+    def goNext(self):
+        self.curr = self.getNext()
+
+    # returns something like -0.25% slope
+    def getPercentSlope(self, p1=None, p2=None):
+        if(p1 == None and p2 == None):
+            p1 = self.curr
+            p2 = self.getNext()
+        return (
+            100 * (self._getElevation(p2) - self._getElevation(p1))
+            / (self.getDistance(p1, p2))
+        )
+    # gets turning radius of next segment in feet
+    def getRadius(self, p1=None):
+        if(p1 == None):
+            p1 = self.curr
+        if("radius" in self._getPoint(p1)["properties"]):
+            return self._getPoint(p1)["properties"]["radius"]
+        return float("inf")
+    
+    # gets distance in feet from A to B and supports paths
+    def getDistance(self, p1, p2):
+        distance = 0
+        dest = p2
+        while self.getNext(p1) != dest:
+            distance += self._getDirectDistance(p1, p2)
+            p1 = p2
+            p2 = self.getNext(p2)
+        return distance + self._getDirectDistance(p1, p2)
+
+    def generateMinimap(self):
+        line = geojson.LineString([])
+        start = self.getCurr()
+        while self.getNext(self.getCurr()) != start:
+            lat, lon = self._getCoords()
+            line["coordinates"].append([lon, lat])
+            self.goNext()
+        for i in range(2):
+            lat, lon = self._getCoords()
+            line["coordinates"].append([lon, lat])
+            self.goNext()
+        f = geojson.Feature(geometry=line)
+        fc = geojson.FeatureCollection([f])
+        with open("app/track/minimap.geojson", "w") as f:
+            geojson.dump(fc, f, indent=4)
+    
+    # WIP curves need to be more tangent-like
+    def interpolateMinimap(self):
+        x = []
+        y = []
+        start = self.getCurr()
+        while self.getNext(self.getCurr()) != start:
+            lat, lon = self._getCoords()
+            x.append(lon)
+            y.append(lat)
+            self.goNext()
+        lat, lon = self._getCoords()
+        x.append(lon)
+        y.append(lat)
+        self.goNext()
+
+        tck, u = interpolate.splprep([x, y], s=0)
+        unew = np.arange(0, 1, .01)
+        out = interpolate.splev(unew, tck)
+        plt.figure()
+        plt.plot(x, y, 'x', out[0], out[1], x, y, 'b')
+        plt.legend(['Linear', 'Cubic Spline', 'True'])
+        plt.axis([-95.68512414004034, -95.6651136503342, 38.917864784928895, 38.93202447381995])
+        plt.title('Spline of parametrically-defined curve')
+        plt.show()
+
+    # private functions you shouldn't have to use
+    def _getPoint(self, p1=None):
+        if(p1 == None):
+            p1 = self.curr
+        return self.track["features"][self.name[p1]]
+
+    def _getCoords(self, p1=None):
+        if(p1 == None):
+            p1 = self.curr
+        return (
+            self._getPoint(p1)["geometry"]["coordinates"][1],
+            self._getPoint(p1)["geometry"]["coordinates"][0]
+        )
+
+    def _getElevation(self, p1=None):
+        if(p1 == None):
+            p1 = self.curr
+        return self._getPoint(p1)["properties"]["elevation"]
+
+    def _getDirectDistance(self, p1, p2):
+        lat1, lon1 = self._getCoords(p1)
+        lat2, lon2 = self._getCoords(p2)
+        x = 288200 * (lon2 - lon1)
+        y = 364000 * (lat2 - lat1)
+        d = math.sqrt(x * x + y * y)
+        if("radius" in self._getPoint(p1)["properties"]):
+            r = self.getRadius(p1)
+            return 2*r*math.asin(d/(2*r))
+        return d
+    
+# testing
+def test():
+    t = Track("trackDynamic")
+    t.setForks("left", "left", "left")
+
+    while t.getNext(t.getCurr()) != "S0":
+        print(t.getCurr())
+        t.goNext()
+    print(t.getCurr())
+    t.goNext()
+
+    print("shortest track length: " + str(t.getDistance("S0", "S0"))) #
+    t.pitNext()
+    print("above length with pit lap: " + str(t.getDistance("S0", "S0"))) # this inherently 2 laps to make it to the finish line after a pit
+    t.setForks("right", "right", "right")
+    print("longest track length: " + str(t.getDistance("S0", "S0")/5280))
+    # t.generateMinimap()
+    t.interpolateMinimap()
+
+test()
