@@ -5,32 +5,7 @@ import math
 
 from battery_pack import internalResistanceOfPack
 
-#comments left by Manthan and Byrn:
-
-#variables that fluctuate (we may have to account for it later): internal resistance of the battery, the voltage of the battery, temperature
-    #for now they are assumed to be constant
-#the overall structure of the battery: one battery module consists of 9 batteries in parallel
-#                                      one battery pack consists of 32 battery modules in series
-
-#there is power lost and power generated of the battery
-#power loss refers to the inefficiency of the battery, so if it is 0.5 watts, then to get 8 watts as the power outputted the battery would have to generate 8.5 watts
-#
-#to do: 
-#calculate power generated = voltage * current (of each module)
-#calculate power lost = current^2 * internal resistance (of each module)
-#add them up in the main
-#add them together (pack)
-#multiply by delta T time (can be called: lostCapacity)
-#divide it by the overall capacity to calculate it in percents 
-#return that and in the main class add lostCapacity to static battery capacity variable
-
 class BatteryModule:
-
-    """
-    constructor
-    """
-    #def __init__(self, voltage, temperature, capacity, resistance):
-        #self.temperature = temperature #most likely will not be needed
 
     def __init_(self, capacity, current):
         #voltage given; should be a constant value
@@ -61,7 +36,7 @@ class BatteryModule:
 
     """
     run the battery module with a certain current for a certain time 
-    """
     def run(current, time):
         
         pass
+    """

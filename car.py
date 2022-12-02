@@ -1,71 +1,66 @@
-from lib2to3.pgen2.pgen import DFAState
-from logging.handlers import DEFAULT_HTTP_LOGGING_PORT
-from multiprocessing.dummy import Array
-#mechanical
-import aeroshell
 import dynamics
-#electronics, array, mottor 
 import array
 import electronics
 import motor
 import weather
-
+import datetime
 import battery_pack
 import battery_module
+
 # model of the solar car
-
-#notes: the car class doesnt necessarily provide recommendations as to what to change
-# it instead creates objects of each of the subclasses and depending on the return values 
-# for the functions inside these subclasses, it passes them as parameters to other subclasses
-# example: all energyloss/energygain from array, electronics, and motor needs to be converted to current, summed up, 
-# and then passed as a parameter to the battery module to calculate the power of the battery
-
+# needs main module to initialize and create race strategy
 class Car:
-    batteryCharge = 100
-    voltageOfASingleCell = 80 #to be removed later
-
-    def __init__(self, speed, time):
-        aero = aeroshell(speed, 45, 1.225, 45, (speed*time))
-        dynam = dynamics(1000, 0.4, 0.7 )
-        batteryPack = battery_pack(self.batteryCharge, 0)
-
-
-    
-    def drive(self, speed, time):
-       
-        array = array(self.weather)
+    def __init__(self, capacity, voltageOfaSingeCell): #attributes to initialize once then automatically update
+        self.voltageOfaSingeCell = voltageOfaSingeCell
+        self.voltageOfaSingeCell = 0
+        self.capacity = capacity
+        
+    def drive(self, speed, time, slope, lattitude, longitude): #parameters required for each tick
+        #current provided by array
+        weather_conditions = weather.Weather(30,-97,datetime.datetime.now(datetime.timezone.utc))
+        arr = Array(weather_conditions, 35)
+        arr.get_power()
         ArrayVoltage = self.voltageOfASingleCell*242
+        currentFromArray = arr/ArrayVoltage
 
-        def __init__(self, velocity, referenceArea, mediumDensity, dragCoefficient, distance):
+        #current drawn from electronics
+        elec = electronics.Electronics()
+        electronics_current = elec.run()
 
-        # simulate mechanical losses
+        #current drawn by motor
+        mot = motor.Motor(speed, slope)
+        motor_current = mot.currentMotor()
 
-            #simulating losses from aeroshell
-            
-            totalMechLoss = self.aero.energyLostv1(self.aero.dr)
+        #total_current send to battery (- is discharge, + is charge)
+        total_current = currentFromArray - (motor_current + electronics_current)
 
-            #simulating energy loss from dynamics (assuming it would also return energyloss in joules)
-            #code below will need to be altered once dynamics subclass is finished
-            
-            totalMechLoss += self.dynam.energyLost()#get energyLoss
+        #calculate capacity loss and SOC of battery pack
+        total_pack_capacity = 400 #parameter needs to be verified
+        batteryPack = battery_pack.BatteryPack(self.capacity,total_current)
+        batteryPack.updateModuleInternalResistance()
+        self.capacity -= batteryPack.LostCapacity(self.time) #is batteryCharge the same thing as capactiy?
+        battery_charge = (self.capacity/total_pack_capacity)*100
 
-
-        # simulate electronics, array, and motor losses to figure out current provided/requested
-            
-            #simulating losses from the array 
-            #some function to return power
-            #convert power to current (power/voltage = current)
-            
-            #for now array is assumed to be a constant value, need the array subsystem to give algorithm/formula to calculate voltage
-            array = array(self.weather)
-            currentFromArray = array.get_power()/ArrayVoltage
-            
-            #do the same for electronics and motor            
-           
+        #print('Current draw from motor:',motor_current,'A')
+        #print('Current provided from array:',currentFromArray,'A')
+        #print('Current draw from electronics',electronics_current,'A')
+        print('Battery is at',battery_charge,'%')
 
 
-        # simulate battery losses/gains 
-            
-            batteryPack.updateModuleInternalResistance()
-            batteryCharge -= batteryPack.LostCapacity(0, 0)
-        # provide CAN outputs (it will depend on what race strategies will end up looking like and what inputs will be needed)
+#main function to test the simulator for one set of inputs
+#need main module to run race strategy and set parameters from tack
+'''
+def main():
+    speed = 20 #m/s
+    time = 0.05 #sec
+    slope = 0
+    capacity = 400 #Wh
+    voltage = 80 #V
+    lattitude = 30
+    longitude = -97
+    solar_mcqueen = Car(speed,time,slope,capacity,voltage,lattitude, longitude)
+    solar_mcqueen.drive()
+
+if __name__=="__main__":
+    main()
+'''
