@@ -66,6 +66,7 @@ class Dynamics:
     # this method updates the velocity of the vehicle
     def update_velocity(self, velocity):
         self.old_velocity = self.velocity
+        #self.old_velocity = 0
         self.velocity = velocity
 
     # this method updates the time of the vehicle

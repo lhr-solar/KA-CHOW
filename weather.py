@@ -46,12 +46,11 @@ class Weather:
                     csvfile.write(wet)
                     csvfile.close()
                     
-                    self.csv_data = wet
-                    #inprove later
-                    # with open(self.outputfilename, 'r', newline='') as csvfile2:
-                    #     reader = csv.reader(csvfile2)
-                    #     next(reader)
-                    #     self.csv_data = list(reader)
+                    
+                    with open(self.outputfilename, 'r', newline='') as csvfile2:
+                        reader = csv.reader(csvfile2)
+                        next(reader)
+                        self.csv_data = list(reader)
         time = str(self.time)
         curTime = time[0:10] +"T" + str(self.time.hour) + ":00:00"
         for row in self.csv_data:

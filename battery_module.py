@@ -7,13 +7,13 @@ import battery_pack
 
 class BatteryModule:
 
-    def __init__(self, capacity, current):
+    def __init__(self, capacity, power):
         #voltage given; should be a constant value
-        self.voltage = 0
+        self.voltage = 118.08/32
         #internal resistance is a given constant value
         self.resistance = 0 #0 for now, will be calculated later
         #current calculated from KCL of array, motor, electronics
-        self.current = current
+        self.power = power
         #current battery capacity in percent
         self.capacity = capacity
 
@@ -29,10 +29,10 @@ class BatteryModule:
         return self.voltage
     
     def powerGeneratedByModule(self):#pass current calculated from array, electronics, and motor
-        return self.voltage * self.current
+        return self.power
 
     def powerLostByModule(self):
-        return pow(self.current, 2) *  self.internalResistanceOfModule(self.resistance)
+        return pow(self.power/self.voltage, 2) *  self.internalResistanceOfModule(self.resistance)
 
     """
     run the battery module with a certain current for a certain time 
