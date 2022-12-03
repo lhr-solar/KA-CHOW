@@ -8,7 +8,7 @@ def runSim():
     tr = Track("Heartland")
 
     # mass = 100 kg, tire friction coefficient = 0.01, drag coefficient = 0.5, velocity = 0 m/s, frontal area = 1 m^2
-    car = newDynamics(100, 0.01, 0.01, 0.5, 0, 1)
+    car = newDynamics(100, 0.01, 0.01, 0.5, 0, 1, 1)
 
     velocity_list = []
     time_list = []

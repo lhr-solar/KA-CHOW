@@ -18,7 +18,7 @@ class newDynamics:
 
     # parameters for the constructor: mass, vehicle tire friction coefficient, aerodynamic drag coefficient
     # current velocity, and frontal area
-    def __init__(self, mass, tire_frictk, tire_fricts, drag_coeff, velocity, frontal_area):
+    def __init__(self, mass, tire_frictk, tire_fricts, drag_coeff, velocity, frontal_area, tire_radius):
         self.mass = mass
         self.tire_frictk = tire_frictk
         self.tire_fricts = tire_fricts
@@ -26,6 +26,7 @@ class newDynamics:
         self.velocity = velocity
         self.old_velocity = velocity
         self.frontal_area = frontal_area
+        self.tire_radius = tire_radius
         self.time = 0
 
     # first variable of the equation: the rolling resistance force
@@ -73,6 +74,9 @@ class newDynamics:
 
     def get_velocity(self): 
         return self.velocity
+    
+    def total_torque(self, slope):
+        return self.total_propelling_force(slope) * self.tire_radius
 
 # test code
 if __name__ == "__main__":
