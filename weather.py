@@ -42,7 +42,7 @@ class Weather:
                     next(reader)
                     self.csv_data = list(reader)
             
-            if not os.path.isfile(self.outputfilename) or self.csv_data == curTime:
+            if not os.path.isfile(self.outputfilename) or self.csv_data[0][1] == curTime:
                 with open(self.outputfilename, 'w', newline='') as csvfile:
                     wet = requests.get('https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(self.latitude) + ',' + str(self.longitude) +'?unitGroup=metric&include=hours&key=' + self.API_KEY +'&contentType=csv').text
                     csvfile.write(wet)
