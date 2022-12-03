@@ -3,7 +3,7 @@ Model of a single battery module
 """
 import math
 
-from battery_pack import internalResistanceOfPack
+import battery_pack
 
 class BatteryModule:
 

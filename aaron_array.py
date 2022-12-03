@@ -58,8 +58,10 @@ class SolarCell:
         temperature_loss = (self.temperature - self.standard_temp) * self.temperature_coefficient
         return self.area * self.efficiency * light_intensity * (1 - temperature_loss)
     
-    
+'''
 if __name__ == "__main__":
     weather = Weather(30,-97,datetime.datetime.now(datetime.timezone.utc))
     array = Array(weather, 35)
     print(array.get_power())
+
+'''

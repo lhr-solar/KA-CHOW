@@ -1,5 +1,5 @@
 import dynamics
-import array
+import aaron_array
 import electronics
 import motor
 import weather
@@ -18,7 +18,7 @@ class Car:
     def drive(self, speed, time, slope, lattitude, longitude): #parameters required for each tick
         #current provided by array
         weather_conditions = weather.Weather(30,-97,datetime.datetime.now(datetime.timezone.utc))
-        arr = Array(weather_conditions, 35)
+        arr = aaron_array.Array(weather_conditions, 35)
         arr.get_power()
         ArrayVoltage = self.voltageOfASingleCell*242
         currentFromArray = arr/ArrayVoltage
@@ -49,7 +49,6 @@ class Car:
 
 #main function to test the simulator for one set of inputs
 #need main module to run race strategy and set parameters from tack
-'''
 def main():
     speed = 20 #m/s
     time = 0.05 #sec
@@ -58,8 +57,7 @@ def main():
     voltage = 80 #V
     lattitude = 30
     longitude = -97
-    solar_mcqueen = Car(speed,time,slope,capacity,voltage,lattitude, longitude)
-    solar_mcqueen.drive()
+    solar_mcqueen = Car(capacity,voltage)
+    solar_mcqueen.drive(speed,time,slope,lattitude, longitude)
 if __name__=="__main__":
     main()
-'''

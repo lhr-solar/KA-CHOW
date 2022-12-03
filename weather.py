@@ -34,7 +34,7 @@ class Weather:
     def pull_weather_data(self):
         #get weather data from API from visual crossing and stores it into a csv file
         #return weather data
-        curTime = self.time[:-5] + "00:00"
+        curTime = str(self.time.hour) + "00:00"
         if(len(self.csv_data) == 0):
             if os.path.isfile(self.outputfilename):
                 with open(self.outputfilename, 'r', newline='') as csvfile2:
