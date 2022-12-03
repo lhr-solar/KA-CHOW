@@ -12,16 +12,14 @@ import battery_module
 class Car:
     def __init__(self, capacity, voltageOfaSingeCell): #attributes to initialize once then automatically update
         self.voltageOfaSingeCell = voltageOfaSingeCell
-        self.voltageOfaSingeCell = 0
         self.capacity = capacity
         
     def drive(self, speed, time, slope, lattitude, longitude): #parameters required for each tick
         #current provided by array
-        weather_conditions = weather.Weather(30,-97,datetime.datetime.now(datetime.timezone.utc))
+        weather_conditions = weather.Weather(lattitude,longitude,datetime.datetime.now(datetime.timezone.utc))
         arr = aaron_array.Array(weather_conditions, 35)
-        arr.get_power()
-        ArrayVoltage = self.voltageOfASingleCell*242
-        currentFromArray = arr/ArrayVoltage
+        ArrayVoltage = self.voltageOfaSingeCell*242
+        currentFromArray = arr.get_power()/ArrayVoltage
 
         #current drawn from electronics
         elec = electronics.Electronics()
@@ -38,20 +36,20 @@ class Car:
         total_pack_capacity = 400 #parameter needs to be verified
         batteryPack = battery_pack.BatteryPack(self.capacity,total_current)
         batteryPack.updateModuleInternalResistance()
-        self.capacity -= batteryPack.LostCapacity(self.time) #is batteryCharge the same thing as capactiy?
+        self.capacity -= batteryPack.LostCapacity(time) #is batteryCharge the same thing as capactiy?
         battery_charge = (self.capacity/total_pack_capacity)*100
 
         #print('Current draw from motor:',motor_current,'A')
         #print('Current provided from array:',currentFromArray,'A')
         #print('Current draw from electronics',electronics_current,'A')
-        print('Battery is at',battery_charge,'%')
+        print('Battery is at {0:.2f}%'.format(battery_charge))
 
 
 #main function to test the simulator for one set of inputs
 #need main module to run race strategy and set parameters from tack
 def main():
-    speed = 20 #m/s
-    time = 0.05 #sec
+    speed = 1 #m/s
+    time = 0.05 #hr
     slope = 0
     capacity = 400 #Wh
     voltage = 80 #V

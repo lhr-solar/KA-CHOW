@@ -7,7 +7,7 @@ import battery_pack
 
 class BatteryModule:
 
-    def __init_(self, capacity, current):
+    def __init__(self, capacity, current):
         #voltage given; should be a constant value
         self.voltage = 0
         #internal resistance is a given constant value

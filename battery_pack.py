@@ -12,19 +12,19 @@ class BatteryPack:
     def updateModuleInternalResistance(self):
         runningSum = 0
         for i in range (32):
-            runningSum += battery_module.self.modules[i].internalResistanceOfModule(0)
+            runningSum += self.modules[i].internalResistanceOfModule(.022) #parameter needs to be verified
         return runningSum
 
     def updatePowerGeneratedByPack(self):
         runningSum = 0
         for i in range (32):
-            runningSum += battery_module.self.modules[i].powerGeneratedByModule(0)
+            runningSum += self.modules[i].powerGeneratedByModule()
         return runningSum
 
     def updatePowerLostByPack(self):
         runningSum = 0
         for i in range (32):
-            runningSum += battery_module.self.modules[i].powerLostByModule(0)
+            runningSum += self.modules[i].powerLostByModule() 
         return runningSum
         
     def LostCapacity(self, deltaT):

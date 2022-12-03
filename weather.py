@@ -34,15 +34,13 @@ class Weather:
     def pull_weather_data(self):
         #get weather data from API from visual crossing and stores it into a csv file
         #return weather data
-        curTime = str(self.time.hour) + "00:00"
         if(len(self.csv_data) == 0):
             if os.path.isfile(self.outputfilename):
                 with open(self.outputfilename, 'r', newline='') as csvfile2:
                     reader = csv.reader(csvfile2)
                     next(reader)
                     self.csv_data = list(reader)
-            
-            if not os.path.isfile(self.outputfilename) or self.csv_data[0][1] == curTime:
+            else:
                 with open(self.outputfilename, 'w', newline='') as csvfile:
                     wet = requests.get('https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(self.latitude) + ',' + str(self.longitude) +'?unitGroup=metric&include=hours&key=' + self.API_KEY +'&contentType=csv').text
                     csvfile.write(wet)
@@ -54,9 +52,11 @@ class Weather:
                     #     reader = csv.reader(csvfile2)
                     #     next(reader)
                     #     self.csv_data = list(reader)
+        time = str(self.time)
+        curTime = time[0:10] +"T" + str(self.time.hour) + ":00:00"
         for row in self.csv_data:
             if(row[1] == curTime):
-                return row[17]
+                return float(row[17])
 
 if __name__ == "__main__":
     a = Weather(40.7128, -74.0060, "2022-11-12T11:10:00")

@@ -18,7 +18,7 @@ class Motor:
         static_friction = .7
         drag_coefficient = .2
         frontal_area = 1 #m^2
-        dynam = dynamics(mass, rolling_friction, static_friction, drag_coefficient, self.speed, frontal_area)
+        dynam = dynamics.Dynamics(mass, rolling_friction, static_friction, drag_coefficient, self.speed, frontal_area,.3)
         self.torque = wheel_radius * dynam.total_propelling_force(self.slope)
         self.current = (29/34)*self.torque + 1 #equation from torque-current curve on motor data sheet
         return self.current

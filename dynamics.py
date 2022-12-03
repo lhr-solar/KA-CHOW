@@ -10,7 +10,7 @@ It will then calculate the required vehicle propelling force.
 
 import math
 
-class newDynamics:
+class Dynamics:
 
     GRAVITY = 9.81; #constant for gravity
 
