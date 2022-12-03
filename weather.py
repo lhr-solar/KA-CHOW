@@ -34,24 +34,26 @@ class Weather:
     def pull_weather_data(self):
         #get weather data from API from visual crossing and stores it into a csv file
         #return weather data
+        curTime = self.time[:-5] + "00:00"
         if(len(self.csv_data) == 0):
             if os.path.isfile(self.outputfilename):
                 with open(self.outputfilename, 'r', newline='') as csvfile2:
                     reader = csv.reader(csvfile2)
                     next(reader)
                     self.csv_data = list(reader)
-            else:
+            
+            if not os.path.isfile(self.outputfilename) or self.csv_data == curTime:
                 with open(self.outputfilename, 'w', newline='') as csvfile:
                     wet = requests.get('https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(self.latitude) + ',' + str(self.longitude) +'?unitGroup=metric&include=hours&key=' + self.API_KEY +'&contentType=csv').text
                     csvfile.write(wet)
                     csvfile.close()
                     
+                    self.csv_data = wet
                     #inprove later
-                    with open(self.outputfilename, 'r', newline='') as csvfile2:
-                        reader = csv.reader(csvfile2)
-                        next(reader)
-                        self.csv_data = list(reader)
-        curTime = self.time[:-5] + "00:00"
+                    # with open(self.outputfilename, 'r', newline='') as csvfile2:
+                    #     reader = csv.reader(csvfile2)
+                    #     next(reader)
+                    #     self.csv_data = list(reader)
         for row in self.csv_data:
             if(row[1] == curTime):
                 return row[17]
