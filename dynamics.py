@@ -82,7 +82,7 @@ class Dynamics:
 # test code
 if __name__ == "__main__":
     # create a new instance of the newDynamics class
-    newDynamics = newDynamics(100, 0.01, 0.5, 10, 1) # mass = 100 kg, tire friction coefficient = 0.01, drag coefficient = 0.5, velocity = 10 m/s, frontal area = 1 m^2
+    newDynamics = newDynamics(100, 0.01, 0.5, 10, 1, 0.285496) # mass = 100 kg, tire friction coefficient = 0.01, drag coefficient = 0.5, velocity = 10 m/s, frontal area = 1 m^2, radius = 0.285496
     assert newDynamics.rolling_resistance() == 9.81 # rolling resistance force = 9.81 N
     assert newDynamics.aerodynamic_drag() == 0.5 * 0.5 * 1.225 * 10 * 10 * 1
     assert newDynamics.climbing_resistance(0) == 0 # climbing resistance force = 0 N

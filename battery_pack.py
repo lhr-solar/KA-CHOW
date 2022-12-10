@@ -4,10 +4,10 @@ import battery_module
 class BatteryPack:
 
     #current calculated in main from KCL of electronics, motor, array
-    def __init__(self, capacity, current):
+    def __init__(self, capacity, power):
         self.modules = []
         for i in range (32):
-            self.modules.append(battery_module.BatteryModule(capacity, current))
+            self.modules.append(battery_module.BatteryModule(capacity, power))
         
     def updateModuleInternalResistance(self):
         runningSum = 0

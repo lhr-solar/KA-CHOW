@@ -6,6 +6,9 @@ import weather
 import datetime
 import battery_pack
 import battery_module
+import time
+import track
+import math
 
 # model of the solar car
 # needs main module to initialize and create race strategy
@@ -14,9 +17,9 @@ class Car:
         self.voltageOfaSingeCell = voltageOfaSingeCell
         self.capacity = capacity
         
-    def drive(self, speed, time, slope, lattitude, longitude): #parameters required for each tick
+    def drive(self, speed, time, slope, latitude, longitude): #parameters required for each tick
         #current provided by array
-        weather_conditions = weather.Weather(lattitude,longitude,datetime.datetime.now())
+        weather_conditions = weather.Weather(latitude,longitude,datetime.datetime.now())
         arr = aaron_array.Array(weather_conditions, 35)
         ArrayVoltage = self.voltageOfaSingeCell*242
         #currentFromArray = arr.get_power()/ArrayVoltage
@@ -36,28 +39,38 @@ class Car:
 
         #calculate capacity loss and SOC of battery pack
         total_pack_capacity = 5400 #parameter needs to be verified
-        batteryPack = battery_pack.BatteryPack(self.capacity,total_power)
+        batteryPack = battery_pack.BatteryPack(self.capacity/432,total_power)
         batteryPack.updateModuleInternalResistance()
         self.capacity += batteryPack.LostCapacity(time) #is batteryCharge the same thing as capactiy?
         battery_charge = (self.capacity/total_pack_capacity)*100
 
-        print('Power draw from motor: {0:.2f} W'.format(motor_current))
+        print('Power draw from motor: {0:.2f} W'.format(motor_power))
         print('Power provided from array: {0:.2f} W'.format(array_power))
         print('Power draw from electronics {0:.2f} W'.format(electronics_power))
         print('Battery is at {0:.2f}%'.format(battery_charge))
+        
+        return speed
 
 
 #main function to test the simulator for one set of inputs
 #need main module to run race strategy and set parameters from tack
 def main():
-    speed = 8.94 #m/s
-    time = 0.05 #hr
-    slope = 0
-    capacity = 5400 #Wh
-    voltage = .582 #V
-    lattitude = 36 #30
-    longitude = -115 #-97
-    solar_mcqueen = Car(capacity,voltage)
-    solar_mcqueen.drive(speed,time,slope,lattitude, longitude)
+    newSpeed = 2 #m/s
+    capacity = 5400 #Wh of individual cell
+    voltage = 3.7 #V
+    
+    t = track.Track("trackDynamic")
+    t.setForks("left", "left", "left")
+    solar_mcqueen = Car(capacity, voltage)
+
+    while t.getNext(t.getCurr()) != "S0":
+        print(t.getCurr())
+        lat, lon = t.getCoords()
+        print(newSpeed, t.getDistance()/(3600*newSpeed), t.getSlopeRadians(), lat, lon)
+        newSpeed = solar_mcqueen.drive(newSpeed, t.getDistance()/(3600*newSpeed), t.getSlopeRadians(), lat, lon)
+        t.goNext()
+        time.sleep(.5)
+
 if __name__=="__main__":
     main()
+    
