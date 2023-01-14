@@ -17,7 +17,12 @@ class BatteryModule:
         #current battery capacity in percent
         self.capacity = capacity
         
-
+    def updateCapacity(self, deltaT):
+        self.capacity -= self.LostCapacity(deltaT)
+        return self.capacity
+    
+    def getCapacity(self):
+        return self.capacity
 
     def internalResistanceOfModule(self, CellResistance):#calc resistance of a module
         n = 9
