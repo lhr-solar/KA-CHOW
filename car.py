@@ -13,14 +13,14 @@ import math
 # model of the solar car
 # needs main module to initialize and create race strategy
 class Car:
-    def __init__(self, capacity, voltageOfaSingeCell): #attributes to initialize once then automatically update
+    def __init__(self, capacity, voltageOfaSingeCell, latitude, longitude, startingTime): #attributes to initialize once then automatically update
         self.voltageOfaSingeCell = voltageOfaSingeCell
         self.capacity = capacity
+        self.weather_conditions = weather.Weather(latitude,longitude, startingTime)
         
     def drive(self, speed, time, slope, latitude, longitude): #parameters required for each tick
         #current provided by array
-        weather_conditions = weather.Weather(latitude,longitude,datetime.datetime.now())
-        arr = aaron_array.Array(weather_conditions, 35)
+        arr = aaron_array.Array(self.weather_conditions, 35)
         ArrayVoltage = self.voltageOfaSingeCell*242
         #currentFromArray = arr.get_power()/ArrayVoltage
         array_power = arr.get_power()
@@ -33,6 +33,7 @@ class Car:
         mot = motor.Motor(speed, slope)
         motor_current = mot.currentMotor()
         motor_power = motor_current*96
+        max_speed = mot.dynamics.max_velocity(abs(slope))
 
         #total_current send to battery (- is discharge, + is charge)
         total_power = array_power - (motor_power + electronics_power)
@@ -49,27 +50,41 @@ class Car:
         print('Power draw from electronics {0:.2f} W'.format(electronics_power))
         print('Battery is at {0:.2f}%'.format(battery_charge))
         
-        return speed
+        return max_speed
 
 
 #main function to test the simulator for one set of inputs
 #need main module to run race strategy and set parameters from tack
 def main():
-    newSpeed = 2 #m/s
+    speed = 0 #m/s
     capacity = 5400 #Wh of individual cell
     voltage = 3.7 #V
     
+    startingTime = datetime.datetime(2023, 1, 10, 0, 0, 0).timestamp()
+    currTime = startingTime
+    currDis = 0
+
     t = track.Track("trackDynamic")
     t.setForks("left", "left", "left")
-    solar_mcqueen = Car(capacity, voltage)
+    lat, lon = t.getCoords()
+    solar_mcqueen = Car(capacity, voltage, lat, lon, startingTime)
+
 
     while t.getNext(t.getCurr()) != "S0":
-        print(t.getCurr())
+        totalDistance = t.getDistance(t.getCurr(), t.getNext(t.getCurr()))
         lat, lon = t.getCoords()
-        print(newSpeed, t.getDistance()/(3600*newSpeed), t.getSlopeRadians(), lat, lon)
-        newSpeed = solar_mcqueen.drive(newSpeed, t.getDistance()/(3600*newSpeed), t.getSlopeRadians(), lat, lon)
-        t.goNext()
+        print(speed, currTime, t.getSlopeRadians(), lat, lon)
+        targetSpeed = solar_mcqueen.drive(speed, currTime, t.getSlopeRadians(), lat, lon)
+        print(f'Fastest speed: {targetSpeed}')
+
+        currDis += speed*180
+        print(f'Progress: {currDis/totalDistance}')
+        print(f'currTime: {currTime - startingTime}')
+        if currDis >= totalDistance:
+            t.goNext()
+            currDis = currDis - totalDistance
         time.sleep(.5)
+        currTime += 180
 
 if __name__=="__main__":
     main()

@@ -2,7 +2,6 @@ import json
 import math
 
 class Track:
-
     track = 0
     curr = "S0"
     name = {}
@@ -17,6 +16,8 @@ class Track:
             self.track = json.load(f)
         for i in range(len(self.track["features"])):
             self.name.update({self.track["features"][i]["properties"]["name"]: i})
+
+    # def evalDistance()
     
     # example call setFork("right", "right", "right") takes the longest route
     def setForks(self, f1, f2, f3):

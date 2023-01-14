@@ -1,7 +1,7 @@
 import dynamics
 
 class Motor:
-    def __init__(self, speed,slope):#pedal Incline in percent
+    def __init__(self, speed, slope):#pedal Incline in percent
         #self.pedalIncline = pedalIncline
         #self.pedalIncline = self.current / 50
         self.slope = slope
@@ -19,6 +19,7 @@ class Motor:
         drag_coefficient = .2
         frontal_area = 1 #m^2
         dynam = dynamics.Dynamics(mass, rolling_friction, static_friction, drag_coefficient, self.speed, frontal_area,wheel_radius)
+        self.dynamics = dynam
         print("Propelling force: {0:.2f} N".format(dynam.total_propelling_force(self.slope)))
         self.torque = dynam.total_torque(self.slope)
         print("Motor Torque: {0:.2f} N-m".format(self.torque))
