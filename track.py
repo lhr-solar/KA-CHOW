@@ -17,7 +17,26 @@ class Track:
         for i in range(len(self.track["features"])):
             self.name.update({self.track["features"][i]["properties"]["name"]: i})
 
-    # def evalDistance()
+    def evalDistance(self, curr, distance):
+        self.curr = "S0"
+        traveled = 0
+
+        while(traveled < distance):
+            traveled += self.getDistance(self.getCurr(), self.getNext(self.getCurr()))
+            self.goNext()
+
+        self.curr = curr
+        return self.getCurr()
+
+    def goDistance(self, distance):
+        self.curr = "S0"
+        traveled = 0
+
+        while traveled < distance:
+            traveled += self.getDistance(self.getCurr(), self.getNext(self.getCurr()))
+            # print(traveled, distance)
+            # print(self.curr)
+            self.goNext()
     
     # example call setFork("right", "right", "right") takes the longest route
     def setForks(self, f1, f2, f3):

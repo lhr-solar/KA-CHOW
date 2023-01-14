@@ -15,7 +15,7 @@ class Array:
 
     def calculateIrradiance(self):
         #angle_to_sun = Weather.get_angle_to_sun(self.weather)
-        intensity_from_sun = Weather.get_intensity(self.weather)
+        intensity_from_sun = self.weather.get_intensity()
         return intensity_from_sun
     
     def update_temperature(self, temperature):

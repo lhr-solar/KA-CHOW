@@ -57,6 +57,8 @@ class Dynamics:
 
     #this method calculates the max velocity that we can go at on a turn
     def max_velocity(self, radius):
+        if radius == 0:
+            return 10
         return math.sqrt(self.GRAVITY * self.mass * self.tire_fricts * radius)
 
     # this method calculates the total required vehicle propelling force

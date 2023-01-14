@@ -9,6 +9,7 @@ class BatteryPack:
         for i in range (32):
             self.modules.append(battery_module.BatteryModule(capacity, power))
         
+        
     def updateModuleInternalResistance(self):
         runningSum = 0
         for i in range (32):

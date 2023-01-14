@@ -16,6 +16,8 @@ class BatteryModule:
         self.power = power
         #current battery capacity in percent
         self.capacity = capacity
+        
+
 
     def internalResistanceOfModule(self, CellResistance):#calc resistance of a module
         n = 9

@@ -17,23 +17,26 @@ class Car:
         self.voltageOfaSingeCell = voltageOfaSingeCell
         self.capacity = capacity
         self.weather_conditions = weather.Weather(latitude,longitude, startingTime)
+        self.elec = electronics.Electronics()
+        self.mot = motor.Motor()
         
     def drive(self, speed, time, slope, latitude, longitude): #parameters required for each tick
         #current provided by array
+        self.weather_conditions.pull_weather_data(time)
         arr = aaron_array.Array(self.weather_conditions, 35)
         ArrayVoltage = self.voltageOfaSingeCell*242
         #currentFromArray = arr.get_power()/ArrayVoltage
-        array_power = arr.get_power()
+        array_power = arr.get_power() #THIS IS IN POWER
 
         #current drawn from electronics
-        elec = electronics.Electronics()
-        electronics_power = elec.run()
+        electronics_power = self.elec.run() #THIS IS IN CURRENT
 
         #current drawn by motor
-        mot = motor.Motor(speed, slope)
-        motor_current = mot.currentMotor()
-        motor_power = motor_current*96
-        max_speed = mot.dynamics.max_velocity(abs(slope))
+        self.mot.updateParameters(speed, slope)
+        motor_current = self.mot.currentMotor() #CURRENT
+        motor_power = motor_current*96 #?!?!?!?! what is multiplier of 96????
+        print(slope)
+        max_speed = self.mot.dynamics.max_velocity(abs(slope))
 
         #total_current send to battery (- is discharge, + is charge)
         total_power = array_power - (motor_power + electronics_power)
@@ -57,6 +60,8 @@ class Car:
 #need main module to run race strategy and set parameters from tack
 def main():
     speed = 0 #m/s
+    acc = 4 #m/s^2
+
     capacity = 5400 #Wh of individual cell
     voltage = 3.7 #V
     
@@ -69,6 +74,7 @@ def main():
     lat, lon = t.getCoords()
     solar_mcqueen = Car(capacity, voltage, lat, lon, startingTime)
 
+    timeFactor = 30 #seconds per tick
 
     while t.getNext(t.getCurr()) != "S0":
         totalDistance = t.getDistance(t.getCurr(), t.getNext(t.getCurr()))
@@ -77,14 +83,27 @@ def main():
         targetSpeed = solar_mcqueen.drive(speed, currTime, t.getSlopeRadians(), lat, lon)
         print(f'Fastest speed: {targetSpeed}')
 
-        currDis += targetSpeed*180
-        print(f'Progress: {currDis/totalDistance}')
-        print(f'currTime: {currTime - startingTime}')
-        if currDis >= totalDistance:
-            t.goNext()
-            currDis = currDis - totalDistance
-        time.sleep(.5)
-        currTime += 180
+        timeToReach = (targetSpeed - speed)/acc
+        if timeToReach > timeFactor:
+            dist = speed*timeFactor**2/2 + acc*timeFactor**3/6
+            speed += acc*timeFactor
+        else:
+            dist = speed*timeToReach**2/2 + acc*timeToReach**3/6
+            dist += targetSpeed*(timeFactor - timeToReach)
+            speed = targetSpeed
+
+        print(f'Speed: {speed}m/s')
+        print(f'Traveled: {dist}m')
+        currDis += dist
+
+        t.goDistance(currDis)
+        print(t.curr)
+
+        print(f'Current distance: {currDis}m')
+        print(f'Current time: {currTime - startingTime}')
+
+        time.sleep(1)
+        currTime += timeFactor
 
 if __name__=="__main__":
     main()

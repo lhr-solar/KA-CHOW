@@ -1,15 +1,10 @@
-import math
-import pysolar
-import csv
-import codecs
-import os.path
 import json, requests, datetime
-
 
 class Weather:
     # this is the api key for website https://www.visualcrossing.com/weather-api
     # limited to 1000 free / day
     API_KEY = "UBJES729Z5FC7YCXGZK3CNMYG"
+    API_KEY_2 = "9A7GBFDJ89M7SCXAY9LBDW2ZG"
     outputfilename = "weather_data/weather.csv"
     csv_data = []
     currWeatherRad = 0
@@ -19,17 +14,28 @@ class Weather:
         self.longitude = longitude
         self.time = time
 
-        url = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(
-            self.latitude) + ',' + str(self.longitude) + f'/{int(time)}/{int(time) + 60*60*24*7}' + '?unitGroup=metric&include=hours&key=' + self.API_KEY + '&contentType=json'
-        data = json.loads(requests.get(url).text)
+        with open("weather_data/weather.json", "r+") as outfile:
+            try:
+                file = json.loads(outfile.read())
+            except:
+                file = None
 
-        self.data = data
-        with open("weather_data/weather.json", "w") as outfile:
-            json.dump(data, outfile)
+            if file is None or file["days"][0]["datetime"] != datetime.datetime.fromtimestamp(time).strftime('%Y-%m-%d'):
+                print("Getting new weather data...")
+
+                url = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(
+                    self.latitude) + ',' + str(self.longitude) + f'/{int(time)}/{int(time) + 60*60*24*7}' + '?unitGroup=metric&include=hours&key=' + self.API_KEY_2 + '&contentType=json'
+
+                self.data = json.loads(requests.get(url).text)
+
+                json.dump(self.data, outfile)
+            elif file:
+                print("Using cached weather data...")
+                self.data = file
 
 
-    # returns the intensity of the sun in W/m^2
-    @staticmethod
+
+
     def get_intensity(self):
         # get weather data from API
         # return weather data
@@ -37,7 +43,7 @@ class Weather:
         # altitude_deg = pysolar.solar.get_altitude(self.latitude,self.longitude,self.time)
         # return pysolar.radiation.get_radiation_direct(self.time,altitude_deg)
 
-        return type(self).currWeatherRad
+        return self.currWeatherRad
 
     def pull_weather_data(self, epochTime):
         for day in self.data["days"]:
@@ -48,6 +54,7 @@ class Weather:
                     if int(hour["datetimeEpoch"]) > epochTime:
                         print(f'Light Intensity at {day["datetime"]} @ {hour["datetime"]}: {light_intensity}')
                         type(self).currWeatherRad = light_intensity
+                        print("LIGHT INTENSITY" + (str)(light_intensity))
                         return light_intensity
 
 
