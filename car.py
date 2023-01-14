@@ -77,7 +77,7 @@ def main():
         targetSpeed = solar_mcqueen.drive(speed, currTime, t.getSlopeRadians(), lat, lon)
         print(f'Fastest speed: {targetSpeed}')
 
-        currDis += speed*180
+        currDis += targetSpeed*180
         print(f'Progress: {currDis/totalDistance}')
         print(f'currTime: {currTime - startingTime}')
         if currDis >= totalDistance:

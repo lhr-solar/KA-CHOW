@@ -12,6 +12,7 @@ class Weather:
     API_KEY = "UBJES729Z5FC7YCXGZK3CNMYG"
     outputfilename = "weather_data/weather.csv"
     csv_data = []
+    currWeatherRad = 0
 
     def __init__(self, latitude, longitude, time):
         self.latitude = latitude
@@ -36,7 +37,7 @@ class Weather:
         # altitude_deg = pysolar.solar.get_altitude(self.latitude,self.longitude,self.time)
         # return pysolar.radiation.get_radiation_direct(self.time,altitude_deg)
 
-        return self.currWeatherRad
+        return type(self).currWeatherRad
 
     def pull_weather_data(self, epochTime):
         for day in self.data["days"]:
@@ -46,7 +47,7 @@ class Weather:
                     light_intensity = float(hour["solarradiation"])
                     if int(hour["datetimeEpoch"]) > epochTime:
                         print(f'Light Intensity at {day["datetime"]} @ {hour["datetime"]}: {light_intensity}')
-                        self.currWeatherRad = light_intensity
+                        type(self).currWeatherRad = light_intensity
                         return light_intensity
 
 
