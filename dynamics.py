@@ -57,21 +57,23 @@ class Dynamics:
 
     #this method calculates the max velocity that we can go at on a turn
     def max_velocity(self, radius):
+        if radius == 0:
+            return 10
         return math.sqrt(self.GRAVITY * self.mass * self.tire_fricts * radius)
 
     # this method calculates the total required vehicle propelling force
     def total_propelling_force(self, slope):
+        print("Rolling Resistance: {0:.2f} N".format(self.rolling_resistance()))
+        print("Aerodynamic Drag: {0:.2f} N".format(self.aerodynamic_drag()))
+        print("Climbing Resistance: {0:.2f} N".format(self.climbing_resistance(slope)))
+        print("Linear Acceleration: {0:.2f} N".format(self.linear_acceleration()))
+
         return self.rolling_resistance() + self.aerodynamic_drag() + self.climbing_resistance(slope) + self.linear_acceleration()
 
-    # this method updates the velocity of the vehicle
-    def update_velocity(self, velocity):
-        self.old_velocity = self.velocity
-        #self.old_velocity = 0
-        self.velocity = velocity
-
-    # this method updates the time of the vehicle
-    def update_time(self, time):
+    def updateParams(self, time, velocity):
         self.time = time
+        self.old_velocity = self.velocity
+        self.velocity = velocity
 
     def get_velocity(self): 
         return self.velocity
@@ -82,7 +84,7 @@ class Dynamics:
 # test code
 if __name__ == "__main__":
     # create a new instance of the newDynamics class
-    newDynamics = newDynamics(100, 0.01, 0.5, 10, 1) # mass = 100 kg, tire friction coefficient = 0.01, drag coefficient = 0.5, velocity = 10 m/s, frontal area = 1 m^2
+    newDynamics = newDynamics(100, 0.01, 0.5, 10, 1, 0.285496) # mass = 100 kg, tire friction coefficient = 0.01, drag coefficient = 0.5, velocity = 10 m/s, frontal area = 1 m^2, radius = 0.285496
     assert newDynamics.rolling_resistance() == 9.81 # rolling resistance force = 9.81 N
     assert newDynamics.aerodynamic_drag() == 0.5 * 0.5 * 1.225 * 10 * 10 * 1
     assert newDynamics.climbing_resistance(0) == 0 # climbing resistance force = 0 N

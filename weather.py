@@ -1,61 +1,62 @@
-import math
-import pysolar
-import requests
-import csv
-import codecs
-import os.path
+import json, requests, datetime
 
 class Weather:
-    #this is the api key for website https://www.visualcrossing.com/weather-api
-    #limited to 1000 free / day
+    # this is the api key for website https://www.visualcrossing.com/weather-api
+    # limited to 1000 free / day
     API_KEY = "UBJES729Z5FC7YCXGZK3CNMYG"
+    API_KEY_2 = "9A7GBFDJ89M7SCXAY9LBDW2ZG"
     outputfilename = "weather_data/weather.csv"
     csv_data = []
-    
+    currWeatherRad = 0
+
     def __init__(self, latitude, longitude, time):
         self.latitude = latitude
         self.longitude = longitude
         self.time = time
-        
-    def set_time(self, time):
-        self.time = time
-        
-    #returns the intensity of the sun in W/m^2
+
+        with open("weather_data/weather.json", "r+") as outfile:
+            try:
+                file = json.loads(outfile.read())
+            except:
+                file = None
+
+            if file is None or file["days"][0]["datetime"] != datetime.datetime.fromtimestamp(time).strftime('%Y-%m-%d'):
+                print("Getting new weather data...")
+
+                url = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(
+                    self.latitude) + ',' + str(self.longitude) + f'/{int(time)}/{int(time) + 60*60*24*7}' + '?unitGroup=metric&include=hours&key=' + self.API_KEY_2 + '&contentType=json'
+
+                self.data = json.loads(requests.get(url).text)
+
+                json.dump(self.data, outfile)
+            elif file:
+                print("Using cached weather data...")
+                self.data = file
+
+
+
+
     def get_intensity(self):
-        #get weather data from API
-        #return weather data
-        
+        # get weather data from API
+        # return weather data
+
         # altitude_deg = pysolar.solar.get_altitude(self.latitude,self.longitude,self.time)
         # return pysolar.radiation.get_radiation_direct(self.time,altitude_deg)
-        
-        return self.pull_weather_data()
-    
-    #the current weather data is saved in a csv file, to have ht efile reupdate, the file has to be deleted
-    def pull_weather_data(self):
-        #get weather data from API from visual crossing and stores it into a csv file
-        #return weather data
-        if(len(self.csv_data) == 0):
-            if os.path.isfile(self.outputfilename):
-                with open(self.outputfilename, 'r', newline='') as csvfile2:
-                    reader = csv.reader(csvfile2)
-                    next(reader)
-                    self.csv_data = list(reader)
-            else:
-                with open(self.outputfilename, 'w', newline='') as csvfile:
-                    wet = requests.get('https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(self.latitude) + ',' + str(self.longitude) +'?unitGroup=metric&include=hours&key=' + self.API_KEY +'&contentType=csv').text
-                    csvfile.write(wet)
-                    csvfile.close()
-                    
-                    
-                    with open(self.outputfilename, 'r', newline='') as csvfile2:
-                        reader = csv.reader(csvfile2)
-                        next(reader)
-                        self.csv_data = list(reader)
-        time = str(self.time)
-        curTime = time[0:10] +"T" + str(self.time.hour) + ":00:00"
-        for row in self.csv_data:
-            if(row[1] == curTime):
-                return float(row[17])
+
+        return self.currWeatherRad
+
+    def pull_weather_data(self, epochTime):
+        for day in self.data["days"]:
+            t = int(day["datetimeEpoch"]) + 86400 # a day in seconds
+            if t > epochTime:
+                for hour in day["hours"]:
+                    light_intensity = float(hour["solarradiation"])
+                    if int(hour["datetimeEpoch"]) > epochTime:
+                        print(f'Light Intensity at {day["datetime"]} @ {hour["datetime"]}: {light_intensity}')
+                        type(self).currWeatherRad = light_intensity
+                        print("LIGHT INTENSITY" + (str)(light_intensity))
+                        return light_intensity
+
 
 if __name__ == "__main__":
     a = Weather(40.7128, -74.0060, "2022-11-12T11:10:00")
