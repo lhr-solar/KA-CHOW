@@ -63,17 +63,17 @@ class Dynamics:
 
     # this method calculates the total required vehicle propelling force
     def total_propelling_force(self, slope):
+        print("Rolling Resistance: {0:.2f} N".format(self.rolling_resistance()))
+        print("Aerodynamic Drag: {0:.2f} N".format(self.aerodynamic_drag()))
+        print("Climbing Resistance: {0:.2f} N".format(self.climbing_resistance(slope)))
+        print("Linear Acceleration: {0:.2f} N".format(self.linear_acceleration()))
+
         return self.rolling_resistance() + self.aerodynamic_drag() + self.climbing_resistance(slope) + self.linear_acceleration()
 
-    # this method updates the velocity of the vehicle
-    def update_velocity(self, velocity):
-        self.old_velocity = self.velocity
-        #self.old_velocity = 0
-        self.velocity = velocity
-
-    # this method updates the time of the vehicle
-    def update_time(self, time):
+    def updateParams(self, time, velocity):
         self.time = time
+        self.old_velocity = self.velocity
+        self.velocity = velocity
 
     def get_velocity(self): 
         return self.velocity

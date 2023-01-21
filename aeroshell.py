@@ -1,3 +1,3 @@
 # model of the aeroshell
 
-class Aeroshell:
+#class Aeroshell:

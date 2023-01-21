@@ -34,8 +34,6 @@ class Track:
 
         while traveled < distance:
             traveled += self.getDistance(self.getCurr(), self.getNext(self.getCurr()))
-            # print(traveled, distance)
-            # print(self.curr)
             self.goNext()
     
     # example call setFork("right", "right", "right") takes the longest route
