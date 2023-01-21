@@ -1,4 +1,4 @@
-import battery_module
+import old.battery_module as battery_module
 # model of the battery pack
 
 class BatteryPack:

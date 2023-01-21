@@ -1,34 +1,31 @@
-import math
-import datetime
-from weather import Weather
+import weather
 
-
-#model for a solar cell array
 class Array:
-    def __init__(self, weather, temperature=25):
+    def __init__(self, car, temperature):
+        self.weather = weather.Weather(car.lat, car.lon, car.time)
+        self.temperature = temperature# TODO: self.weather.get_temperature() #add method to weather
+        
         self.num_c60 = 158 #temporary number of cells
-        self.num_e60 = 88
-        self.solarcell_c60 = SolarCell(153.328, 0.225, temperature, 0.00342) #unsure of the temperature_coefficients
-        self.solarcell_e60 = SolarCell(153.328, 0.237, temperature, 0.00363)
-        self.weather = weather
-        self.temperature = temperature
+        self.num_e60 =  88
+        self.solarcell_c60 = SolarCell(153.328, 0.225, self.temperature, 0.00342) #unsure of the temperature_coefficients
+        self.solarcell_e60 = SolarCell(153.328, 0.237, self.temperature, 0.00363)
 
+        self.car = car
+        
     def calculateIrradiance(self):
         #angle_to_sun = Weather.get_angle_to_sun(self.weather)
         intensity_from_sun = self.weather.get_intensity()
         return intensity_from_sun
-    
-    def update_temperature(self, temperature):
-        self.temperature = temperature
         
 
     def get_power(self):
+        self.weather.pull_weather_data(self.car.time)
         self.solarcell_c60.update_temperature(self.temperature)
         self.solarcell_e60.update_temperature(self.temperature)
         irradiance = self.calculateIrradiance()
         return self.solarcell_c60.get_power_gen(irradiance) * self.num_c60 + self.solarcell_e60.get_power_gen(irradiance) * self.num_e60
     
-    
+        
     
 #model for a solar cell in a solar panel
 class SolarCell:
@@ -57,11 +54,3 @@ class SolarCell:
     def get_power_gen(self, light_intensity):
         temperature_loss = (self.temperature - self.standard_temp) * self.temperature_coefficient
         return self.area * self.efficiency * light_intensity * (1 - temperature_loss)
-    
-'''
-if __name__ == "__main__":
-    weather = Weather(30,-97,datetime.datetime.now(datetime.timezone.utc))
-    array = Array(weather, 35)
-    print(array.get_power())
-
-'''
