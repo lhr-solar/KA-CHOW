@@ -21,9 +21,13 @@ for i, day in enumerate(days):
   currentTime = day.startTime
   print(f"\n-------DAY {i+1} STARTING AT {datetime.datetime.fromtimestamp(day.startTime)}-------")
   car = Car(track, day.startTime)
+  currDist = 0
   while currentTime < day.startTime + day.runTime:
     print("Time Passed:", currentTime - day.startTime)
-    car.drive(28.8, 0.174533, currentTime)
+    slope = track.elevationSlope(track.distanceToT(currDist))
+    print(f'Slope: {slope}')
+    currDist += car.drive(10, slope, currentTime)
+    # car will drive off max lol
     currentTime += tickLength
     time.sleep(1)
     print()

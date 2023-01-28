@@ -5,6 +5,8 @@ import motor
 import time
 import datetime
 
+import numpy as np
+
 from track import Track
 class Car:
     def __init__(self, track: Track, time: int) -> None:
@@ -35,6 +37,8 @@ class Car:
         print("Motor Power: " + str(motorPower) + " W")
         print("Battery: " + str(self.battery.get_capacity()) + " Wh")
         self.time = time
+
+        return speed * deltaTime * np.cos(slope)
         
 if __name__ == "__main__":
     t = Track("track2.json")

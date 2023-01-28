@@ -1,11 +1,13 @@
 import numpy as np
 import splines, json
-from util import splinePlotter as sp
+
+from typing import List
+from scipy.integrate import quad
 
 class Track:
   # PARAMS:
   #   trackFile: the name of the track file to be used
-  def __init__(self, trackFile) -> None:
+  def __init__(self, trackFile, friction=.01) -> None:
     points = []
     with open(trackFile) as f:
       geojson = json.load(f)
@@ -38,30 +40,47 @@ class Track:
         point[1] = (point[1] - minLat)/(maxLat - minLat)
     points = np.array(points)
     points[:,1] = points[:,1]*aspectRatio
-    points = points*.45 #rough conversion to km from lat/lon
+    points = points*.65 #rough conversion to km from lat/lon
+    # ^- conversion not accurate, maybe an issue the points. Should be .4 multiple, but the track would too short then
 
     self.points = points
-    self.cmr = splines.CatmullRom(points, endconditions="closed")
-    self.tLen = len(self.cmr.segments)
+    cmr = splines.CatmullRom(points, endconditions="closed")
+    self.trackLength = self.__arcLength(cmr, 0, len(points)) # in km?
+    self.cmr = splines.ConstantSpeedAdapter(cmr) 
+    self.tLen = self.cmr.grid[-1]
 
-    # PARAMS
-    # y1 = y'(x)
-    # y2 = y''(x)
-    def __curvature(self, y1: float, y2: float) -> float:
-        return (np.abs(y2))/((1+y1**2)**(3/2))
+  # PARAMS
+  # y1 = y'(x)
+  # y2 = y''(x)
+  def __curvature(self, y1: float, y2: float) -> float:
+      return (np.abs(y2))/((1+y1**2)**(3/2))
 
-    # Returns R at t in the 2d plane
-    def curvature(self, t: float) -> float:
-      y1 = self.track.evaluate(t, 1)[1]
-      y2 = self.track.evaluate(t, 2)[1]
-      return self.__curvature(y1, y2)
+  # Returns R at t in the 2d plane
+  def curvature(self, t: float) -> float:
+    y1 = self.track.evaluate(t, 1)[1]
+    y2 = self.track.evaluate(t, 2)[1]
+    return self.__curvature(y1, y2)
 
-    # Returns the slope of the elevation profile at t
-    def elevationSlope(self, t: float) -> float:
-      return self.track.evaluate(t, 1)[2]
+  # Returns the slope of the elevation profile at t
+  def elevationSlope(self, t: float) -> float:
+    return self.cmr.curve.evaluate(t, 1)[2]
 
-    def __getDistance(self, t1: float, t2: float) -> float:
-      return np.linalg.norm(self.track.evaluate(t2) - self.track.evaluate(t1))
+  def distanceToT(self, d: float) -> float:
+    return d / self.trackLength
+
+  def __arcLength(self, spline, t1, t2) -> float:
+    def f(x):
+      x1, y1, z1 = spline.evaluate(x, 1)
+      return np.sqrt(x1**2 + y1**2)
+    return quad(f, t1, t2)[0]
+
+  # max speed at T according to friction
+  # math.sqrt(self.GRAVITY * self.mass * self.tire_fricts * radius)
+  def maxSpeed(self, t: float, m: float, radius: float) -> float:
+    return np.sqrt(9.8, * m * self.friction * radius)
+      
 
 if __name__ == "__main__":
     t = Track("track2.json")
+    cmr = t.cmr
+    print(t.trackLength)
