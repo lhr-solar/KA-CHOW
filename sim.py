@@ -1,4 +1,4 @@
-import datetime, time
+import datetime, time, math
 
 from car import Car
 from track import Track
@@ -24,10 +24,10 @@ for i, day in enumerate(days):
   currDist = 0
   while currentTime < day.startTime + day.runTime:
     print("Time Passed:", currentTime - day.startTime)
-    slope = track.elevationSlope(track.distanceToT(currDist))
+    slope = track.elevationSlope(track.distanceToT(currDist))/180 * math.pi
     print(f'Slope: {slope}')
     currDist += car.drive(10, slope, currentTime)
     # car will drive off max lol
     currentTime += tickLength
-    time.sleep(1)
+    time.sleep(0.2)
     print()

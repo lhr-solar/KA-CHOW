@@ -63,7 +63,8 @@ class Track:
 
   # Returns the slope of the elevation profile at t
   def elevationSlope(self, t: float) -> float:
-    return self.cmr.curve.evaluate(np.fmod(t, self.tLen), 1)[2]
+    print("t" + str(t))
+    return self.cmr.curve.evaluate(np.fmod(t, self.tLen)/2, 1)[2] ##LANACE WTF, why it keeps going out of bounds when not divide by 2
 
   def distanceToT(self, d: float) -> float:
     return d / self.trackLength
