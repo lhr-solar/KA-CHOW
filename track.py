@@ -63,7 +63,7 @@ class Track:
 
   # Returns the slope of the elevation profile at t
   def elevationSlope(self, t: float) -> float:
-    return self.cmr.curve.evaluate(t, 1)[2]
+    return self.cmr.curve.evaluate(np.fmod(t, self.tLen), 1)[2]
 
   def distanceToT(self, d: float) -> float:
     return d / self.trackLength
