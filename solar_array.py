@@ -7,8 +7,14 @@ class Array:
         
         self.num_c60 = 158 #temporary number of cells
         self.num_e60 =  88
-        self.solarcell_c60 = SolarCell(153.328, 0.225, self.temperature, 0.00342) #unsure of the temperature_coefficients
-        self.solarcell_e60 = SolarCell(153.328, 0.237, self.temperature, 0.00363)
+        AREA_C60 = 153.328 #cm^2
+        AREA_E60 = 153.328 #cm^2
+        EFFICIENCY_C60 = 0.225 #percentage
+        EFFICIENCY_E60 = 0.237 #percentage
+        TEMP_COEFF_C60 = 0.00342 #percentage #VERIFY
+        TEMP_COEFF_E60 = 0.00363 #percentage
+        self.solarcell_c60 = SolarCell(AREA_C60, EFFICIENCY_C60, self.temperature, TEMP_COEFF_C60)
+        self.solarcell_e60 = SolarCell(AREA_E60, EFFICIENCY_E60, self.temperature, TEMP_COEFF_E60)
 
         self.car = car
         
