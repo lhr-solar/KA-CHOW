@@ -1,7 +1,9 @@
-import datetime, time, math, sys
+import datetime, time, math, sys, logging
 
 from car import Car
 from track import Track
+
+logging.basicConfig(level=logging.DEBUG)
 
 trackFile = str(sys.argv[1])
 
@@ -26,9 +28,9 @@ for i, day in enumerate(days):
   while currentTime - day.startTime < day.runTime:
     print(f"Time Passed: {currentTime - day.startTime}s")
     print(f"Stoping at: { day.runTime}")
-    # print(f"Laps Travelled: {currDist / track.trackLength}")
+    logging.debug(f"Laps Travelled: {currDist / track.trackLength}")
     slope = track.elevationSlope(track.distanceToT(currDist))/180 * math.pi
-    # print(f'Slope: {slope}')
+    logging.debug(f'Slope: {slope}')
     currDist += car.drive(10, slope, currentTime) / 1000 # to km
     currentTime += tickLength
     # time.sleep(0.2)
