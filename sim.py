@@ -1,9 +1,9 @@
-import datetime, time, math
+import datetime, time, math, sys
 
 from car import Car
 from track import Track
 
-trackFile = "track2.json"
+trackFile = str(sys.argv[1])
 
 track = Track(trackFile)
 
