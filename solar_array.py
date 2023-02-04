@@ -12,7 +12,7 @@ class Array:
 
         self.car = car
         
-    def calculateIrradiance(self):
+    def calculate_irradiance(self):
         #angle_to_sun = Weather.get_angle_to_sun(self.weather)
         intensity_from_sun = self.weather.get_intensity()
         return intensity_from_sun
@@ -22,7 +22,7 @@ class Array:
         self.weather.pull_weather_data(self.car.time)
         self.solarcell_c60.update_temperature(self.temperature)
         self.solarcell_e60.update_temperature(self.temperature)
-        irradiance = self.calculateIrradiance()
+        irradiance = self.calculate_irradiance()
         return self.solarcell_c60.get_power_gen(irradiance) * self.num_c60 + self.solarcell_e60.get_power_gen(irradiance) * self.num_e60
     
         

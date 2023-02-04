@@ -4,6 +4,8 @@ import splines, json
 from typing import List
 from scipy.integrate import quad
 
+from util.Track_CMR import Track_CMR
+
 class Track:
   # PARAMS:
   #   trackFile: the name of the track file to be used
@@ -22,22 +24,13 @@ class Track:
 
 
     # Determine aspect ratio for scaling
-    minLat, maxLat, minLon, maxLon = 90, -90, 180, -180
-    for point in points:
-        if point[0] < minLon:
-            minLon = point[0]
-        if point[0] > maxLon:
-            maxLon = point[0]
-        if point[1] < minLat:
-            minLat = point[1]
-        if point[1] > maxLat:
-            maxLat = point[1]
+    xs = [point[0] for point in points]
+    ys = [point[1] for point in points]
+    minLat, maxLat, minLon, maxLon = min(ys), max(ys), min(xs), max(xs)
     aspectRatio = (maxLat - minLat)/(maxLon - minLon)
 
     # Scale points and convert to km
-    for point in points:
-        point[0] = (point[0] - minLon)/(maxLon - minLon)
-        point[1] = (point[1] - minLat)/(maxLat - minLat)
+    points = [[(point[0] - minLon)/(maxLon - minLon), (point[1] - minLat)/(maxLat - minLat), point[2]] for point in points]
     points = np.array(points)
     points[:,1] = points[:,1]*aspectRatio
     points = points*.65 #rough conversion to km from lat/lon
@@ -46,7 +39,7 @@ class Track:
     self.points = points
     cmr = splines.CatmullRom(points, endconditions="closed")
     self.trackLength = self.__arcLength(cmr, 0, len(points)) # in km?
-    self.cmr = splines.ConstantSpeedAdapter(cmr) 
+    self.cmr = Track_CMR(cmr) 
     self.tLen = self.cmr.grid[-1]
 
   # PARAMS
@@ -63,8 +56,7 @@ class Track:
 
   # Returns the slope of the elevation profile at t
   def elevationSlope(self, t: float) -> float:
-    print("t" + str(t))
-    return self.cmr.curve.evaluate(np.fmod(t, self.tLen)/2, 1)[2] ##LANACE WTF, why it keeps going out of bounds when not divide by 2
+    return self.cmr.evaluate(np.fmod(t, self.tLen), 1)[2]
 
   def distanceToT(self, d: float) -> float:
     return d / self.trackLength

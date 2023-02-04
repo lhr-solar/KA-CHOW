@@ -8,34 +8,38 @@ import datetime
 import numpy as np
 
 from track import Track
+
+
 class Car:
+    
+    ELECTRONICS_POWER = 77  # W
+    VOLTAGE_BATTERY = 96 # V
+    MAX_BATTERY_CAPACITY_WH = 5400
+    
     def __init__(self, track: Track, time: int) -> None:
-        max_capacity = 5400 # Wh
+        
         self.lon, self.lat = track.coords
         self.temperature = 25 #update
         self.time = time
         
-        self.battery = battery.Battery(max_capacity)
+        self.battery = battery.Battery(self.MAX_BATTERY_CAPACITY_WH)
         self.array = solar_array.Array(self, self.temperature)
         self.motor = motor.Motor()
 
     def drive(self, speed, slope, time):
-        print("Car is driving")
+        # print("Car is driving")
         deltaTime = time - self.time
         
         arrayPower = self.array.get_power()
-        electronicsPower = 77 #power draw from constantly used systems
         
-        self.motor.updateParameters(speed, slope, time)
-        motorPower = self.motor.getCurrent() * 96 #no clue what the voltage of the battery is
-        if motorPower < 0:
-            motorPower = 0
+        self.motor.update_parameters(speed, slope, time)
+        motorPower = max(0, self.motor.get_current() * self.VOLTAGE_BATTERY)
 
-        used_power = (arrayPower - electronicsPower - motorPower)*deltaTime/3600 # Wh
+        used_power = (arrayPower - self.ELECTRONICS_POWER - motorPower)*deltaTime/3600 # Wh
         
         self.battery.update(used_power)
-        print("Motor Power: " + str(motorPower) + " W")
-        print("Battery: " + str(self.battery.get_capacity()) + " Wh")
+        # print("Motor Power: " + str(motorPower) + " W")
+        # print("Battery: " + str(self.battery.get_capacity()) + " Wh")
         self.time = time
 
         return speed * deltaTime * np.cos(slope)

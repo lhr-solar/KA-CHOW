@@ -64,7 +64,7 @@ class Weather:
                 for hour in day["hours"]:
                     light_intensity = float(hour["solarradiation"])
                     if int(hour["datetimeEpoch"]) > epochTime:
-                        print(f'Light Intensity at {day["datetime"]} @ {hour["datetime"]}: {light_intensity}')
+                        # print(f'Light Intensity at {day["datetime"]} @ {hour["datetime"]}: {light_intensity}')
                         type(self).currWeatherRad = light_intensity
                         return light_intensity
 

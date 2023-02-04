@@ -2,8 +2,8 @@
 
 class Battery:
     
-    def __init__(self, max_capacity, current_capacity = -1):
-        if(current_capacity == -1):
+    def __init__(self, max_capacity, current_capacity = None):
+        if(current_capacity == None):
             self.current_capacity = max_capacity
         else:
             self.current_capacity = current_capacity

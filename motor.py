@@ -18,13 +18,13 @@ class Motor:
         self.dynamics = dynamics.Dynamics(mass, rolling_friction, static_friction, drag_coefficient, self.speed, frontal_area,wheel_radius)
     
         
-    def updateParameters(self, speed, slope, time):
+    def update_parameters(self, speed, slope, time):
         self.slope = slope
         self.speed = speed
-        self.dynamics.updateParams(time, speed)
+        self.dynamics.update_params(time, speed)
         
     #current provided by motor calculated by force from Dynamics
-    def getCurrent(self):
+    def get_current(self):
         #parameters need to be verified
         self.torque = self.dynamics.total_torque(self.slope)
         self.current = (29/34)*self.torque + 1 #equation from torque-current curve on motor data sheet

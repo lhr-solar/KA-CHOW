@@ -16,7 +16,7 @@ class Dynamics:
         self.time = time
         self.prev_time = 0
         
-    def updateParams(self, time, velocity):
+    def update_params(self, time, velocity):
         self.prev_velocity = self.velocity
         self.velocity = velocity
         
