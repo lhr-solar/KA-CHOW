@@ -7,7 +7,7 @@ from old.weather import Weather
 class Array:
     def __init__(self, weather, temperature=25):
         self.num_c60 = 158 #temporary number of cells
-        self.num_e60 =  88
+        self.num_e60 = 88
         self.solarcell_c60 = SolarCell(153.328, 0.225, temperature, 0.00342) #unsure of the temperature_coefficients
         self.solarcell_e60 = SolarCell(153.328, 0.237, temperature, 0.00363)
         self.weather = weather
