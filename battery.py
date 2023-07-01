@@ -1,3 +1,4 @@
+import numpy as np
 
 
 class Battery:
@@ -14,4 +15,5 @@ class Battery:
         return self.current_capacity
     
     def update(self, change):
-        self.current_capacity += change
+        self.current_capacity = np.clip(
+            self.current_capacity + change, 0, self.max_capacity)

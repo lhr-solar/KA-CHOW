@@ -1,5 +1,7 @@
 import splines
 import numpy as _np
+from splines import _check_param
+
 
 class Track_CMR(splines.ConstantSpeedAdapter):
     def __init__(self, curve):
