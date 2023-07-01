@@ -3,7 +3,7 @@ Model of a single battery module
 """
 import math
 
-import battery_pack
+import old.battery_pack as battery_pack
 
 class BatteryModule:
 

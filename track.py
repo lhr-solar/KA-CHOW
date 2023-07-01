@@ -1,153 +1,126 @@
+import numpy as np
+import splines
 import json
-import math
+
+from typing import List
+from scipy.integrate import quad
+
 
 class Track:
-    track = 0
-    curr = "S0"
-    name = {}
-    pit = "nopit";  #nopit, pit
-    fork1 = "left"; #left, middle, right
-    fork2 = "left"; #left, right
-    fork3 = "left"; #left, right
+    # PARAMS:
+    #   trackFile: the name of the track file to be used
+    def __init__(self, trackFile=None, geojson=None) -> None:
+        points = []
+        if trackFile:
+            with open(trackFile) as f:
+                geojson = json.load(f)
+                features = geojson["features"]
+                for feature in features:
+                    geometry = feature["geometry"]
+                    coordinates = geometry["coordinates"]
+                    properties = feature["properties"]
 
-    # 
-    def __init__(self, trackName):
-        with open(trackName + ".geojson", "r") as f:
-            self.track = json.load(f)
-        for i in range(len(self.track["features"])):
-            self.name.update({self.track["features"][i]["properties"]["name"]: i})
+                    points.append([*coordinates, properties["elevation"]])
+                    self.coords = coordinates
+        elif geojson:
+            features = geojson["features"]
+            for feature in features:
+                geometry = feature["geometry"]
+                coordinates = geometry["coordinates"]
+                properties = feature["properties"]
 
-    def evalDistance(self, curr, distance):
-        self.curr = "S0"
+                points.append([*coordinates, properties["elevation"]])
+                self.coords = coordinates
+        else:
+            raise Exception("No track file or geojson provided")
+
+        # Determine aspect ratio for scaling
+        xs = [point[0] for point in points]
+        ys = [point[1] for point in points]
+        minLat, maxLat, minLon, maxLon = min(ys), max(ys), min(xs), max(xs)
+        aspectRatio = (maxLat - minLat)/(maxLon - minLon)
+
+        # Scale points and convert to km
+        points = [[(point[0] - minLon)/(maxLon - minLon), (point[1] -
+                                                           minLat)/(maxLat - minLat), point[2]] for point in points]
+        points = np.array(points)
+        points[:, 1] = points[:, 1]*aspectRatio
+        points = points*.65  # rough conversion to km from lat/lon
+        # ^- conversion not accurate, maybe an issue the points. Should be .4 multiple, but the track would too short then
+
+        self.points = points
+        cmr = splines.CatmullRom(points, endconditions="closed")
+
+        self.cmr = cmr
+
+        self.pieceLengths = []
+        for i in range(len(cmr.grid) - 1):
+            self.pieceLengths += [self.__arcLength(
+                cmr, i, i+1)]
+        self.trackLength = sum(self.pieceLengths)
+        self.tLen = self.trackLength
+
+        minX, maxX, minY, maxY = np.min(points[:, 0]), np.max(
+            points[:, 0]), np.min(points[:, 1]), np.max(points[:, 1])
+        self.boundingBox = np.array([[minX, minY], [maxX, maxY]])
+
+    # PARAMS
+    # y1 = y'(x)
+    # y2 = y''(x)
+    def __curvature(self, y1: float, y2: float) -> float:
+        return (np.abs(y2))/((1+y1**2)**(3/2))
+
+    # Evalulate with distance constant speed across the spline.
+    # I.e. ensure the spline is linear in t and C2
+    # d is between 0 and the total track length
+    def evaluateCS(self, d: float, n=0) -> np.ndarray:
+        t = self.distanceToT(d)
+        return self.cmr.evaluate(t, n)
+
+    # Returns R at t in the 2d plane
+    def curvature(self, t: float) -> float:
+        y1 = self.cmr.evaluate(t, 1)[1]
+        y2 = self.cmr.evaluate(t, 2)[1]
+        return self.__curvature(y1, y2)
+
+    # Returns the slope of the elevation profile at t
+    def elevationSlope(self, t: float) -> float:
+        return self.cmr.evaluate(np.fmod(t, self.tLen), 1)[2]
+
+    def distanceToT(self, d: float) -> float:
         traveled = 0
+        i = 0
+        d = np.fmod(d, self.trackLength)
+        while d > traveled:
+            traveled += self.pieceLengths[i]
+            i += 1
 
-        while(traveled < distance):
-            traveled += self.getDistance(self.getCurr(), self.getNext(self.getCurr()))
-            self.goNext()
+        # this assumes the functions have constant f' but that is not true
+        # Good enough though
+        t = (i) - (traveled - d)/self.pieceLengths[i - 1]
 
-        self.curr = curr
-        return self.getCurr()
+        return t
 
-    def goDistance(self, distance):
-        self.curr = "S0"
-        traveled = 0
+    def __arcLength(self, spline, t1, t2) -> float:
+        def f(x):
+            x1, y1, z1 = spline.evaluate(x, 1)
+            return np.sqrt(x1**2 + y1**2)
+        return quad(f, t1, t2)[0]
 
-        while traveled < distance:
-            traveled += self.getDistance(self.getCurr(), self.getNext(self.getCurr()))
-            self.goNext()
-    
-    # example call setFork("right", "right", "right") takes the longest route
-    def setForks(self, f1, f2, f3):
-        self.fork1 = f1
-        self.fork2 = f2
-        self.fork3 = f3
+    # max speed at T according to friction
+    # math.sqrt(self.GRAVITY * self.mass * self.tire_fricts * radius)
+    def __maxSpeed(self, t: float, m: float) -> float:
+        K = self.curvature(t) * 1  # to m
+        F = 3.14
+        return np.sqrt(9.8 * m * F * (1/K))
 
-    # example call pitNext() forces car to take the ONLY the next pit
-    def pitNext(self):
-        self.pit = "pit"
+    def maxSpeed(self, d: float, m: float) -> float:
+        return self.__maxSpeed(self.distanceToT(d), m)
 
-    # returns current name like "S0"
-    def getCurr(self):
-        return self.curr
 
-    # returns next name like "S1"
-    def getNext(self, p1=None):
-        if(p1 == None):
-            p1 = self.curr
-        match = lambda s: self._getPoint(p1)["properties"]["name"] == s
-        if(match("S5")):
-            return self._getPoint(p1)["properties"][self.fork1]
-        if(match("S8")):
-            return self._getPoint(p1)["properties"][self.fork2]
-        if(match("S10")):
-            return self._getPoint(p1)["properties"][self.fork3]
-        if(match("S21")):
-            if(self.pit == "pit"):
-                self.pit = "nopit"
-                return self._getPoint(p1)["properties"]["pit"]
-            return self._getPoint(p1)["properties"]["nopit"]
-        return self._getPoint(p1)["properties"]["next"]
-
-    # iterates curr to next name
-    def goNext(self):
-        self.curr = self.getNext()
-
-    # returns something like pi/4 radians
-    def getSlopeRadians(self, p1=None, p2=None):
-        if(p1 == None and p2 == None):
-            p1 = self.curr
-            p2 = self.getNext()
-        return math.atan((self._getElevation(p2) - self._getElevation(p1))/(self._getDirectDistance(p1, p2)))
-    
-    # gets turning radius of next segment in feet
-    def getRadius(self, p1=None):
-        if(p1 == None):
-            p1 = self.curr
-        if("radius" in self._getPoint(p1)["properties"]):
-            return self._getPoint(p1)["properties"]["radius"]
-        return float("inf")
-    
-    # gets distance in meters from A to B and supports paths
-    def getDistance(self, p1=None, p2=None):
-        if(p1 == None):
-            p1 = self.curr
-        if(p2 == None):
-            p2 = self.getNext(p1)
-        distance = 0
-        dest = p2
-        while self.getNext(p1) != dest:
-            distance += self._getDirectDistance(p1, p2)
-            p1 = p2
-            p2 = self.getNext(p2)
-        return (distance + self._getDirectDistance(p1, p2))/math.cos(self.getSlopeRadians(p1, p2))*0.3048
-
-    # gets coords (lat, lon)
-    def getCoords(self, p1=None):
-        if(p1 == None):
-            p1 = self.curr
-        return (
-            self._getPoint(p1)["geometry"]["coordinates"][1],
-            self._getPoint(p1)["geometry"]["coordinates"][0]
-        )
-
-    # private functions you shouldn't have to use
-    def _getPoint(self, p1=None):
-        if(p1 == None):
-            p1 = self.curr
-        return self.track["features"][self.name[p1]]
-
-    def _getElevation(self, p1=None):
-        if(p1 == None):
-            p1 = self.curr
-        return self._getPoint(p1)["properties"]["elevation"]
-
-    def _getDirectDistance(self, p1, p2):
-        lat1, lon1 = self.getCoords(p1)
-        lat2, lon2 = self.getCoords(p2)
-        x = 288200 * (lon2 - lon1)
-        y = 364000 * (lat2 - lat1)
-        d = math.sqrt(x * x + y * y)
-        if("radius" in self._getPoint(p1)["properties"]):
-            r = self.getRadius(p1)
-            return 2*r*math.asin(d/(2*r))
-        return d
-    
-def test():
-    t = Track("trackDynamic")
-    t.setForks("left", "left", "left")
-
-    while t.getNext(t.getCurr()) != "S0":
-        print(t.getCurr())
-        t.goNext()
-    print(t.getCurr())
-    t.goNext()
-
-    print("shortest track length: " + str(t.getDistance("S0", "S0"))) #
-    t.pitNext()
-    print("above length with pit lap: " + str(t.getDistance("S0", "S0"))) # this inherently 2 laps to make it to the finish line after a pit
-    t.setForks("right", "right", "right")
-    print("longest track length: " + str(t.getDistance("S0", "S0")/5280))
-    # t.generateMinimap()
-    # t.interpolateMinimap()
-
-test()
+if __name__ == "__main__":
+    t = Track("./track2.json")
+    cmr = t.cmr
+    print(t.trackLength)
+    print(t.evaluateCS(0), cmr.evaluate(0))
+    print(t.evaluateCS(t.trackLength - .000001), cmr.evaluate(cmr.grid[-1]))

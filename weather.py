@@ -9,30 +9,42 @@ class Weather:
     csv_data = []
     currWeatherRad = 0
 
-    def __init__(self, latitude, longitude, time):
+    def __init__(self, latitude, longitude, time: int):
         self.latitude = latitude
         self.longitude = longitude
         self.time = time
 
-        with open("weather_data/weather.json", "r+") as outfile:
-            try:
-                file = json.loads(outfile.read())
-            except:
-                file = None
+        def fetch_weather_data(self):
+            nonlocal time, outfile
+            print("Getting new weather data...")
 
-            if file is None or file["days"][0]["datetime"] != datetime.datetime.fromtimestamp(time).strftime('%Y-%m-%d'):
-                print("Getting new weather data...")
+            url = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(
+                self.latitude) + ',' + str(self.longitude) + f'/{int(time)}/{int(time) + 60*60*24*4}' + '?unitGroup=metric&include=hours&key=' + self.API_KEY_2 + '&contentType=json'
 
-                url = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/' + str(
-                    self.latitude) + ',' + str(self.longitude) + f'/{int(time)}/{int(time) + 60*60*24*7}' + '?unitGroup=metric&include=hours&key=' + self.API_KEY_2 + '&contentType=json'
+            self.data = json.loads(requests.get(url).text)
+            self.data["beginTime"] = time
+            self.data["endTime"] = time + 60*60*24*4
 
-                self.data = json.loads(requests.get(url).text)
+            outfile.seek(0)
+            outfile.write(json.dumps(self.data))
+            outfile.truncate()
 
-                json.dump(self.data, outfile)
-            elif file:
-                print("Using cached weather data...")
-                self.data = file
 
+        try:
+            with open("weather_data/weather.json", "r+") as outfile:
+                try:
+                    file = json.loads(outfile.read())
+                except:
+                    file = None
+
+                if file is None or not (file["beginTime"] <= time <= file["endTime"]):
+                    fetch_weather_data(self)
+                elif file:
+                    print("Using cached weather data...")
+                    self.data = file
+        except:
+            with open("weather_data/weather.json", "w+") as outfile:
+                fetch_weather_data(self)
 
 
 
@@ -52,10 +64,10 @@ class Weather:
                 for hour in day["hours"]:
                     light_intensity = float(hour["solarradiation"])
                     if int(hour["datetimeEpoch"]) > epochTime:
-                        print(f'Light Intensity at {day["datetime"]} @ {hour["datetime"]}: {light_intensity}')
+                        # print(f'Light Intensity at {day["datetime"]} @ {hour["datetime"]}: {light_intensity}')
                         type(self).currWeatherRad = light_intensity
-                        print("LIGHT INTENSITY" + (str)(light_intensity))
                         return light_intensity
+
 
 
 if __name__ == "__main__":

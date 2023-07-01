@@ -1,6 +1,6 @@
 import math
 import datetime
-from weather import Weather
+from old.weather import Weather
 
 
 #model for a solar cell array
